@@ -1,35 +1,11 @@
-.statetable-form {
+.addButton {
+  margin-bottom: 12px;
+}
+
+.tape-cell-label {
   font-family: sans-serif;
   font-size: 14px;
   color: #222;
-}
-
-.table-overflow {
-  overflow-x: auto;
-}
-
-.statetable {
-  border: 1px solid #a2a9b1;
-  border-collapse: collapse;
-  text-align: center;
-  background-color: #f8f9fa;
-}
-
-.statetable > tbody > tr > th, .statetable > tbody > tr > td {
-  border: 1px solid #a2a9b1;
-  padding: 0.2em 0.4em;
-}
-
-.statetable > tbody > tr > th {
-  background-color: #eaecf0;
-}
-
-.instruction-labels {
-  font-size: 9pt;
-}
-
-.addButton {
-  margin-bottom: 12px;
 }
 
 .tape-cell-input {

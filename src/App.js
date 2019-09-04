@@ -1,7 +1,7 @@
 import React from 'react';
 import TuringMachineForm from './TuringMachineForm.js';
 
-const GITHUB_LINK = 'https://github.com/brandondong/turing-machine-css';
+const GITHUB_LINK = 'https://github.com/brandondong/css-turing-machine';
 
 function App() {
   return (
