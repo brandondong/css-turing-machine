@@ -22,28 +22,30 @@ The plan of attack is to have a label for each input and to stack all the labels
 
 CSS allows the conditional application of styles through [selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors). The ones that we are heavily leveraging are the earlier mentioned [:checked](https://developer.mozilla.org/en-US/docs/Web/CSS/:checked) pseudo-class selector, the [:not()](https://developer.mozilla.org/en-US/docs/Web/CSS/:not) pseudo-class, the [adjacent sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/Adjacent_sibling_combinator), and the the [general sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator).
 
-As a simple example, say we have two checkboxes followed by a label and we want to hide the label if and only if both checkboxes are checked. This can be accomplished with:
+From here on out, we will assume labels are hidden by default with `label { display: none; }` as this will make later derivations much easier.
+
+As a simple example, say we have two checkboxes followed by a label and we want to show the label if and only if both checkboxes are checked. This can be accomplished with:
 ```css
 input:checked + input:checked + label {
-  display: none;
+  display: inline;
 }
 ```
-If we think of the two checkbox toggle states as booleans, the adjacent sibling combinator allows us to perform a logical AND. For a more complicated example, say we need the label to be hidden if and only if exactly one of the checkboxes is checked. This can be done with:
+If we think of the two checkbox toggle states as booleans, the adjacent sibling combinator allows us to perform a logical AND. For a more complicated example, say we need the label to be shown if and only if exactly one of the checkboxes is checked. This can be done with:
 ```css
 input:checked + input:not(:checked) + label {
-  display: none;
+  display: inline;
 }
 
 input:not(:checked) + input:checked + label {
-  display: none;
+  display: inline;
 }
 ```
 From this example, we can see that using multiple CSS rules allows us to perform a logical OR.
 
-Finally, consider an example where we have five checkboxes followed by five radio buttons in a radio group before the label. If the i<sup>th</sup> radio button is the one that is selected and the i<sup>th</sup> checkbox also happens to be checked, then the label must be hidden. Otherwise, it should be shown. We could implement this with our previous methods using five CSS rules but with the general sibling combinator, we can shorten this to just one:
+Finally, consider an example where we have five radio buttons in a radio group followed by five checkboxes before the label. If the i<sup>th</sup> radio button is the one that is selected and the i<sup>th</sup> checkbox also happens to be checked, then the label must be shown. Otherwise, it should be hidden. We could implement this with our previous methods using five CSS rules but with the general sibling combinator, we can shorten this to just one:
 ```css
 input:checked + input + input + input + input + input:checked ~ label {
-  display: none;
+  display: inline;
 }
 ```
 If the checkboxes are thought of as a boolean array and the selected radio button as a corresponding index, then we have just implemented an array lookup. This will be useful as we want the number of CSS rules we generate to not scale with the size of the tape as we are trying to emulate a theoretical Turing machine that can handle infinite memory.
@@ -57,33 +59,33 @@ To simplify, let us first consider what would have to be done to compute a singl
 <!-- Current state. -->
 <input type="radio" name="s0" id="s0_0"><input type="radio" name="s0" id="s0_1">...
 
-<!-- Current tape. -->
-<input type="checkbox" id="t0_0"><input type="checkbox" id="t0_1">...
-
 <!-- Current head position. -->
 <input type="radio" name="h0" id="h0_0"><input type="radio" name="h0" id="h0_1">...
+
+<!-- Current tape. -->
+<input type="checkbox" id="t0_0"><input type="checkbox" id="t0_1">...
 
 <!-- Next state. -->
 <input type="radio" name="s1" id="s1_0"><input type="radio" name="s1" id="s1_1">...
 
-<!-- Next tape. -->
-<input type="checkbox" id="t1_0"><input type="checkbox" id="t1_1">...
-
 <!-- Next head position. -->
 <input type="radio" name="h1" id="h1_0"><input type="radio" name="h1" id="h1_1">...
+
+<!-- Next tape. -->
+<input type="checkbox" id="t1_0"><input type="checkbox" id="t1_1">...
 
 <!-- Labels controlling the entire second half of inputs, stacked on top of each other using absolute positioning. -->
 <label for="s1_0"></label><label for="s1_1"></label>...
 ```
 Notice that we have to store the destination state separately. We cannot update our data in place as we may overwrite old inputs that are still needed part way through into the computation.
 
-All there is left to do now is to create the CSS rules that will hide the correct labels based on the current inputs.
+All there is left to do now is to create the CSS rules that will show the correct labels based on the current inputs.
 
 ### Computing the updated tape
 
 Code for computing a single tape cell in a traditional programmming language might look something like:
 ```python
-def next(tapeCellIdx):
+def nextValue(tapeCellIdx):
   if currentHeadPos != tapeCellIdx:
     # No way we could change its value this iteration.
     return currentTape[tapeCellIdx]
@@ -94,35 +96,35 @@ def next(tapeCellIdx):
 ```
 Our goal is to intelligently control the visibility of labels so that the correct inputs can be toggled. The code may be better rearranged as:
 ```python
-def shouldHideToggle(tapeCellIdx):
+def shouldShowToggle(tapeCellIdx):
   if currentHeadPos != tapeCellIdx:
     # No way we could change its value this iteration.
-    return currentTape[tapeCellIdx] == nextTape[tapeCellIdx]
+    return currentTape[tapeCellIdx] != destTape[tapeCellIdx]
   else:
     readValue = currentTape[currentHeadPos]
     writeValue = stateTable[currentState][readValue].write
-    return writeValue == nextTape[tapeCellIdx]
+    return writeValue != destTape[tapeCellIdx]
 ```
 This will require some massaging before we can leverage the selectors as described earlier. Firstly, the boolean equality checks can be broken into cases:
 ```python
-def shouldHideToggle(tapeCellIdx):
+def shouldShowToggle(tapeCellIdx):
   if currentHeadPos != tapeCellIdx:
     # No way we could change its value this iteration.
-    return (currentTape[tapeCellIdx] and nextTape[tapeCellIdx]) or (not currentTape[tapeCellIdx] and not nextTape[tapeCellIdx])
+    return (currentTape[tapeCellIdx] and not destTape[tapeCellIdx]) or (not currentTape[tapeCellIdx] and destTape[tapeCellIdx])
   else:
     readValue = currentTape[currentHeadPos]
     if readValue:
       writeValue = stateTable[currentState][1].write
     else:
       writeValue = stateTable[currentState][0].write
-    return (writeValue and nextTape[tapeCellIdx]) or (not writeValue and not nextTape[tapeCellIdx])
+    return (writeValue and not destTape[tapeCellIdx]) or (not writeValue and destTape[tapeCellIdx])
 ```
 The number of states is always finite so it can also be broken into cases:
 ```python
-def shouldHideToggle(tapeCellIdx):
+def shouldShowToggle(tapeCellIdx):
   if currentHeadPos != tapeCellIdx:
     # No way we could change its value this iteration.
-    return (currentTape[tapeCellIdx] and nextTape[tapeCellIdx]) or (not currentTape[tapeCellIdx] and not nextTape[tapeCellIdx])
+    return (currentTape[tapeCellIdx] and not destTape[tapeCellIdx]) or (not currentTape[tapeCellIdx] and destTape[tapeCellIdx])
   else:
     readValue = currentTape[currentHeadPos]
     if currentState == 0:
@@ -137,15 +139,166 @@ def shouldHideToggle(tapeCellIdx):
       else:
         writeValue = stateTable[1][0].write
     # ...
-    return (writeValue and nextTape[tapeCellIdx]) or (not writeValue and not nextTape[tapeCellIdx])
+    return (writeValue and not destTape[tapeCellIdx]) or (not writeValue and destTape[tapeCellIdx])
 ```
 Finally, after some boolean transformations, we get:
 ```python
-def shouldHideToggle(tapeCellIdx):
-  return (currentHeadPos != tapeCellIdx and currentTape[tapeCellIdx] and nextTape[tapeCellIdx]) or
-    (currentHeadPos != tapeCellIdx and not currentTape[tapeCellIdx] and not nextTape[tapeCellIdx]) or
-    (currentHeadPos == tapeCellIdx and currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].write and nextTape[tapeCellIdx]) or
-    (currentHeadPos == tapeCellIdx and currentState == 0 and currentTape[currentHeadPos] and not stateTable[0][1].write and not nextTape[tapeCellIdx]) or
-    (currentHeadPos == tapeCellIdx and currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].write and nextTape[tapeCellIdx]) or
-    (currentHeadPos == tapeCellIdx and currentState == 0 and not currentTape[currentHeadPos] and not stateTable[0][0].write and not nextTape[tapeCellIdx]) # ...
+def shouldShowToggle(tapeCellIdx):
+  return (currentHeadPos != tapeCellIdx and currentTape[tapeCellIdx] and not destTape[tapeCellIdx]) or
+    (currentHeadPos != tapeCellIdx and not currentTape[tapeCellIdx] and destTape[tapeCellIdx]) or
+    (currentHeadPos == tapeCellIdx and currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].write and not destTape[tapeCellIdx]) or
+    (currentHeadPos == tapeCellIdx and currentState == 0 and currentTape[currentHeadPos] and not stateTable[0][1].write and destTape[tapeCellIdx]) or
+    (currentHeadPos == tapeCellIdx and currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].write and not destTape[tapeCellIdx]) or
+    (currentHeadPos == tapeCellIdx and currentState == 0 and not currentTape[currentHeadPos] and not stateTable[0][0].write and destTape[tapeCellIdx]) # ...
 ```
+This fits the format described earlier with multiple clauses made up of logical AND's joined by logical OR's. Each line can therefore be represented by a single CSS rule. If tapeCellIdx equals zero, the first line could be translated to:
+```css
+                                                    /* Some statically known offset to the label for #t1_0. */
+#h0_0:not(:checked) ~ #t0_0:checked ~ #t1_0::not(:checked) + * + * + * + label {
+  display: inline;
+}
+```
+This will work but will require a separate rule for each tape cell which we don't want. Notice that regardless of what the value of tapeCellIdx is, the distance between the elements we're identifying by id's are always the same as well as the distance to the matching label. Therefore, we can use just one rule for all tape cells:
+```css
+/* Statically known offsets between each. */
+input:not(:checked) + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
+  display: inline;
+}
+```
+The third line in our function can be handled similarly. First, when tapeCellIdx is equal to zero and assuming the known value of stateTable[0][1].write is equal to one:
+```css
+#s0_0:checked ~ #h0_0:checked ~ #t0_0:checked ~ #t1_0:not(:checked) + * + * + * + label {
+  display: inline;
+}
+```
+When generalized, we can again just create one rule for all tape cells:
+```css
+#s0_0:checked ~ input:checked + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
+  display: inline;
+}
+```
+
+### Computing the updated head position
+
+This will largely go through the same derivation process as computing the updated tape cells. One notable difference is that these labels are for radio buttons so the label should only be shown if the expected value is checked but the destination value is currently unchecked.
+```python
+def shouldShowRadioLabel(headPositionIdx):
+  readValue = currentTape[currentHeadPos]
+  move = stateTable[currentState][readValue].move
+  if move == 'L':
+    # Tape moves left, head position moves right.
+    updatedHeadPos = currentHeadPos + 1
+  else:
+    updatedHeadPos = currentHeadPos - 1
+  # Target value for this index.
+  value = updatedHeadPos == headPositionIdx
+  return value and not destHeadPos[headPositionIdx]
+```
+Going through the same mechanical steps:
+```python
+def shouldShowRadioLabel(headPositionIdx):
+  readValue = currentTape[currentHeadPos]
+  if readValue:
+    move = stateTable[currentState][1].move
+  else:
+    move = stateTable[currentState][0].move
+  if move == 'L':
+    # Tape moves left, head position moves right.
+    updatedHeadPos = currentHeadPos + 1
+  else:
+    updatedHeadPos = currentHeadPos - 1
+  return updatedHeadPos == headPositionIdx and not destHeadPos[headPositionIdx]
+```
+```python
+def shouldShowRadioLabel(headPositionIdx):
+  readValue = currentTape[currentHeadPos]
+  if currentState == 0:
+    if readValue:
+      move = stateTable[0][1].move
+    else:
+      move = stateTable[0][0].move
+  elif currentState == 1:
+    if readValue:
+      move = stateTable[1][1].move
+    else:
+      move = stateTable[1][0].move
+  # ...
+  if move == 'L':
+    # Tape moves left, head position moves right.
+    updatedHeadPos = currentHeadPos + 1
+  else:
+    updatedHeadPos = currentHeadPos - 1
+  return updatedHeadPos == headPositionIdx and not destHeadPos[headPositionIdx]
+```
+```python
+def shouldShowRadioLabel(headPositionIdx):
+  return (currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].move == 'L' and currentHeadPos + 1 == headPositionIdx and not destHeadPos[headPositionIdx]) or
+    (currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].move == 'R' and currentHeadPos - 1 == headPositionIdx and not destHeadPos[headPositionIdx])  or
+    (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].move == 'L' and currentHeadPos + 1 == headPositionIdx and not destHeadPos[headPositionIdx]) or
+    (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].move == 'R' and currentHeadPos - 1 == headPositionIdx and not destHeadPos[headPositionIdx]) # ...
+```
+The first line, assuming headPositionIdx is equal to three and stateTable[0][1].move == 'L', can be expressed in CSS as:
+```css
+             /* currentHeadPos */                /* currentTape[currentHeadPos] */
+#s0_0:checked ~ input:checked + #h0_3 + * + * + * + input:checked ~ #h1_3:not(:checked) + * + * + * + label {
+  display: inline;
+}
+```
+Generalized to:
+```css
+                                                  /* Statically known offset relative to currentHeadPos + 1 */
+#s0_0:checked ~ input:checked + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
+  display: inline;
+}
+```
+
+### Computing the next state
+
+This is very similar to computing the updated head position:
+```python
+def shouldShowRadioLabel(stateIdx):
+  readValue = currentTape[currentHeadPos]
+  nextState = stateTable[currentState][readValue].next
+  # Target value for this index.
+  value = nextState == stateIdx
+  return value and not destStates[stateIdx]
+```
+```python
+def shouldShowRadioLabel(stateIdx):
+  readValue = currentTape[currentHeadPos]
+  if readValue:
+    nextState = stateTable[currentState][1].next
+  else:
+    nextState = stateTable[currentState][0].next
+  return nextState == stateIdx and not destStates[stateIdx]
+```
+```python
+def shouldShowRadioLabel(stateIdx):
+  readValue = currentTape[currentHeadPos]
+  if currentState == 0:
+    if readValue:
+      nextState = stateTable[0][1].next
+    else:
+      nextState = stateTable[0][0].next
+  elif currentState == 1:
+    if readValue:
+      nextState = stateTable[1][1].next
+    else:
+      nextState = stateTable[1][0].next
+  # ...
+  return nextState == stateIdx and not destStates[stateIdx]
+```
+```python
+def shouldShowRadioLabel(stateIdx):
+  return (currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].next == stateIdx and not destStates[stateIdx]) or
+    (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].next == stateIdx and not destStates[stateIdx]) # ...
+```
+Assuming stateIdx and stateTable[0][1].next are equal to three, the first line can be expressed as:
+```css
+#s0_0:checked ~ input:checked + * + * + * + input:checked ~ #s1_3:not(:checked) + * + * + * + label {
+  display: inline;
+}
+```
+
+### Generalizing to many iterations
+
