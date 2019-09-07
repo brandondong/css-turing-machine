@@ -23,13 +23,13 @@ The plan of attack is to have a label for each input and to stack all the labels
 CSS allows the conditional application of styles through [selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors). The ones that we are heavily leveraging are the earlier mentioned [:checked](https://developer.mozilla.org/en-US/docs/Web/CSS/:checked) pseudo-class selector, the [:not()](https://developer.mozilla.org/en-US/docs/Web/CSS/:not) pseudo-class, the [adjacent sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/Adjacent_sibling_combinator), and the the [general sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator).
 
 As a simple example, say we have two checkboxes followed by a label and we want to hide the label if and only if both checkboxes are checked. This can be accomplished with:
-```
+```css
 input:checked + input:checked + label {
   display: none;
 }
 ```
-If we think of the two checkbox toggle states as binary bits, the adjacent sibling combinator allows us to perform a logical AND. For a more complicated example, say we need the label to be hidden if and only if exactly one of the checkboxes is checked. This can be done with:
-```
+If we think of the two checkbox toggle states as booleans, the adjacent sibling combinator allows us to perform a logical AND. For a more complicated example, say we need the label to be hidden if and only if exactly one of the checkboxes is checked. This can be done with:
+```css
 input:checked + input:not(:checked) + label {
   display: none;
 }
@@ -41,7 +41,7 @@ input:not(:checked) + input:checked + label {
 From this example, we can see that using multiple CSS rules allows us to perform a logical OR.
 
 Finally, consider an example where we have five checkboxes followed by five radio buttons in a radio group before the label. If the i<sup>th</sup> radio button is the one that is selected and the i<sup>th</sup> checkbox also happens to be checked, then the label must be hidden. Otherwise, it should be shown. We could implement this with our previous methods using five CSS rules but with the general sibling combinator, we can shorten this to just one:
-```
+```css
 input:checked + input + input + input + input + input:checked ~ label {
   display: none;
 }
@@ -50,37 +50,102 @@ If the checkboxes are thought of as a boolean array and the selected radio butto
 
 ### Computing a single iteration
 
-To simplify, let us first consider what would have to be done to compute a single iteration of a Turing machine. That is, given a list of tape symbols, the head position, and the current Turing machine state, we compute the subsequent list of tape symbols, head position, and Turing machine state. Pseudocode for computing a single tape cell might look something like:
+To simplify, let us first consider what would have to be done to compute a single iteration of a Turing machine. That is, given a list of tape symbols, the head position, and the current Turing machine state, we compute the subsequent list of tape symbols, head position, and Turing machine state. Let us assume the DOM is organized as follows:
+```html
+<!-- All inputs are invisible so the user cannot toggle them manually. -->
+
+<!-- Current state. -->
+<input type="radio" name="s0" id="s0_0"><input type="radio" name="s0" id="s0_1">...
+
+<!-- Current tape. -->
+<input type="checkbox" id="t0_0"><input type="checkbox" id="t0_1">...
+
+<!-- Current head position. -->
+<input type="radio" name="h0" id="h0_0"><input type="radio" name="h0" id="h0_1">...
+
+<!-- Next state. -->
+<input type="radio" name="s1" id="s1_0"><input type="radio" name="s1" id="s1_1">...
+
+<!-- Next tape. -->
+<input type="checkbox" id="t1_0"><input type="checkbox" id="t1_1">...
+
+<!-- Next head position. -->
+<input type="radio" name="h1" id="h1_0"><input type="radio" name="h1" id="h1_1">...
+
+<!-- Labels controlling the entire second half of inputs, stacked on top of each other using absolute positioning. -->
+<label for="s1_0"></label><label for="s1_1"></label>...
 ```
+Notice that we have to store the destination state separately. We cannot update our data in place as we may overwrite old inputs that are still needed part way through into the computation.
+
+All there is left to do now is to create the CSS rules that will hide the correct labels based on the current inputs.
+
+### Computing the updated tape
+
+Code for computing a single tape cell in a traditional programmming language might look something like:
+```python
 def next(tapeCellIdx):
   if currentHeadPos != tapeCellIdx:
     # No way we could change its value this iteration.
     return currentTape[tapeCellIdx]
-  
-  readValue = currentTape[currentHeadPos]
-  return stateTable[currentState][readValue].write
+  else:
+    readValue = currentTape[currentHeadPos]
+    writeValue = stateTable[currentState][readValue].write
+    return writeValue
 ```
-As a reminder, our goal is to intelligently control the visibility of labels so that the correct checkboxes can be toggled. The pseudocode expressed in this form would look like:
-```
-def showToggle(tapeCellIdx):
+Our goal is to intelligently control the visibility of labels so that the correct inputs can be toggled. The code may be better rearranged as:
+```python
+def shouldHideToggle(tapeCellIdx):
   if currentHeadPos != tapeCellIdx:
     # No way we could change its value this iteration.
-    return False
-  
-  readValue = currentTape[currentHeadPos]
-  return stateTable[currentState][readValue].write != currentTape[tapeCellIdx]
+    return currentTape[tapeCellIdx] == nextTape[tapeCellIdx]
+  else:
+    readValue = currentTape[currentHeadPos]
+    writeValue = stateTable[currentState][readValue].write
+    return writeValue == nextTape[tapeCellIdx]
 ```
-TODO sentence Written in this way, it becomes clear that this approach will not work with one by one toggling. We could run into the case where 
-```
-def showToggle(tapeCellIdx):
+This will require some massaging before we can leverage the selectors as described earlier. Firstly, the boolean equality checks can be broken into cases:
+```python
+def shouldHideToggle(tapeCellIdx):
   if currentHeadPos != tapeCellIdx:
     # No way we could change its value this iteration.
-    return currentTape[tapeCellIdx] != newTape[tapeCellIdx]
-  
-  readValue = currentTape[currentHeadPos]
-  return stateTable[currentState][readValue].write != newTape[tapeCellIdx]
+    return (currentTape[tapeCellIdx] and nextTape[tapeCellIdx]) or (not currentTape[tapeCellIdx] and not nextTape[tapeCellIdx])
+  else:
+    readValue = currentTape[currentHeadPos]
+    if readValue:
+      writeValue = stateTable[currentState][1].write
+    else:
+      writeValue = stateTable[currentState][0].write
+    return (writeValue and nextTape[tapeCellIdx]) or (not writeValue and not nextTape[tapeCellIdx])
 ```
-
-
-TODO + selector
-switch to or
+The number of states is always finite so it can also be broken into cases:
+```python
+def shouldHideToggle(tapeCellIdx):
+  if currentHeadPos != tapeCellIdx:
+    # No way we could change its value this iteration.
+    return (currentTape[tapeCellIdx] and nextTape[tapeCellIdx]) or (not currentTape[tapeCellIdx] and not nextTape[tapeCellIdx])
+  else:
+    readValue = currentTape[currentHeadPos]
+    if currentState == 0:
+      if readValue:
+        # Statically known value!
+        writeValue = stateTable[0][1].write
+      else:
+        writeValue = stateTable[0][0].write
+    elif currentState == 1:
+      if readValue:
+        writeValue = stateTable[1][1].write
+      else:
+        writeValue = stateTable[1][0].write
+    # ...
+    return (writeValue and nextTape[tapeCellIdx]) or (not writeValue and not nextTape[tapeCellIdx])
+```
+Finally, after some boolean transformations, we get:
+```python
+def shouldHideToggle(tapeCellIdx):
+  return (currentHeadPos != tapeCellIdx and currentTape[tapeCellIdx] and nextTape[tapeCellIdx]) or
+    (currentHeadPos != tapeCellIdx and not currentTape[tapeCellIdx] and not nextTape[tapeCellIdx]) or
+    (currentHeadPos == tapeCellIdx and currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].write and nextTape[tapeCellIdx]) or
+    (currentHeadPos == tapeCellIdx and currentState == 0 and currentTape[currentHeadPos] and not stateTable[0][1].write and not nextTape[tapeCellIdx]) or
+    (currentHeadPos == tapeCellIdx and currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].write and nextTape[tapeCellIdx]) or
+    (currentHeadPos == tapeCellIdx and currentState == 0 and not currentTape[currentHeadPos] and not stateTable[0][0].write and not nextTape[tapeCellIdx]) # ...
+```
