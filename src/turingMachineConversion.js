@@ -14,9 +14,27 @@ export default function toHTML(config, numTapeCells) {
   addInstructions(sb);
   sb.push('<hr>\n<div id="machine">\n');
   addStateInputs(sb, config, numTapeCells);
+  addLogicLabels(sb, config, numTapeCells);
   addInputUI(sb, numTapeCells);
   sb.push('</div>\n</body>\n</html>');
   return sb.join('');
+}
+
+function addLogicLabels(sb, config, numTapeCells) {
+  sb.push('<label for="f" class="l toggle"></label>');
+  for (let i = 0; i < 2; i++) {
+    for (let state = 0; state < config.length + 1; state++) {
+      sb.push(`<label for="s${i}_${state}" class="l"></label>`);
+    }
+    for (let pos = 0; pos < numTapeCells; pos++) {
+      sb.push(`<label for="h${i}_${pos}" class="l"></label>`);
+    }
+    for (let idx = 0; idx < numTapeCells; idx++) {
+      sb.push(`<label for="t${i}_${idx}" class="l"></label>`);
+    }
+  }
+  sb.push('<label for="s" class="l start"></label>');
+  sb.push('\n');
 }
 
 function addStateInputs(sb, config, numTapeCells) {
@@ -57,6 +75,9 @@ function addInputUI(sb, numTapeCells) {
 }
 
 function addMachineDisplayStyling(sb, config, numTapeCells) {
+  const haltingState = config.length;
+  sb.push(`#s:checked~#s0_${haltingState}:not(:checked)~#s1_${haltingState}:not(:checked)~label.toggle{display:inline;}\n`);
+
   for (let n = 0; n < 2; n++) {
     for (let i = 0; i < config.length; i++) {
       sb.push(`#s${n}_${i}:checked~*>#s${n}::before{content:"${i}";}\n`);
@@ -64,12 +85,12 @@ function addMachineDisplayStyling(sb, config, numTapeCells) {
     sb.push(`#s${n}_${config.length}:checked~*>#s${n}::before{content:"HALT";}\n`);
   }
 
-  addRuleOffsetAfterChecked(sb, 3 * numTapeCells + config.length + 1, 'span.t0::before{content:"1";}');
-  addRuleOffsetAfterChecked(sb, 4 * numTapeCells + config.length + 1, 'label.t0::before{content:"1";}');
-  addRuleOffsetAfterChecked(sb, 6 * numTapeCells + config.length + 2, 'span.h0{visibility:visible;}');
+  addRuleOffsetAfterChecked(sb, 7 * numTapeCells + 3 * config.length + 5, 'span.t0::before{content:"1";}');
+  addRuleOffsetAfterChecked(sb, 8 * numTapeCells + 3 * config.length + 5, 'label.t0::before{content:"1";}');
+  addRuleOffsetAfterChecked(sb, 10 * numTapeCells + 3 * config.length + 6, 'span.h0{visibility:visible;}');
 
-  addRuleOffsetAfterChecked(sb, 4 * numTapeCells + 2, 'span.t1::before{content:"1";}');
-  addRuleOffsetAfterChecked(sb, 6 * numTapeCells + 3, 'span.h1{visibility:visible;}');
+  addRuleOffsetAfterChecked(sb, 8 * numTapeCells + 2 * config.length + 6, 'span.t1::before{content:"1";}');
+  addRuleOffsetAfterChecked(sb, 10 * numTapeCells + 2 * config.length + 7, 'span.h1{visibility:visible;}');
 }
 
 function addRuleOffsetAfterChecked(sb, offset, rule) {

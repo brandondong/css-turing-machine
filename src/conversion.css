@@ -6,18 +6,15 @@ input, label {
   position: relative;
   overflow: auto;
   white-space: nowrap;
+  height: 430px;
 }
 
-#f:not(:checked) ~ .o0 {
+#s:checked ~ #f:not(:checked) ~ .o0 {
   opacity: 0.5;
 }
 
 #f:checked ~ .o1 {
   opacity: 0.5;
-}
-
-#s:not(:checked) ~ .o0 {
-  opacity: 1;
 }
 
 #s:not(:checked) ~ .o1 {
@@ -32,6 +29,10 @@ input, label {
   display: none;
 }
 
+#s:not(:checked) ~ label.start {
+  display: inline;
+}
+
 .t {
   color: white;
   background-color: rgb(66, 139, 202);
@@ -43,6 +44,10 @@ input, label {
 
 .t::before {
   content: "0";
+}
+
+label.t {
+  cursor: pointer;
 }
 
 span.h {
@@ -59,26 +64,30 @@ span.h::before {
   content: "▲";
 }
 
-label.a {
+label.l {
   position: absolute;
-  right: 0px;
-  margin-bottom: 50px;
-  font-size: 20px;
+  left: 0px;
+  top: 330px;
+  font-size: 16px;
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
   line-height: 1.5;
   color: white;
-  background-color: #343a40;
-  padding: 8px 16px;
-  border: 1px solid #343a40;
-  border-radius: .3rem;
+  background-color: #28a745;
+  padding: 6px 12px;
+  border: 1px solid #28a745;
+  border-radius: .25rem;
   cursor: pointer;
 }
 
-label.a:hover {
-  background-color: #23272b;
-  border-color: #1d2124;
+label.l:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
 }
 
-label.a::before {
+label.l::before {
   content: "Execute Step";
+}
+
+label.start::before {
+  content: "Start";
 }
