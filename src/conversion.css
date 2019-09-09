@@ -1,0 +1,84 @@
+input, label {
+  display: none;
+}
+
+#machine {
+  position: relative;
+  overflow: auto;
+  white-space: nowrap;
+}
+
+#f:not(:checked) ~ .o0 {
+  opacity: 0.5;
+}
+
+#f:checked ~ .o1 {
+  opacity: 0.5;
+}
+
+#s:not(:checked) ~ .o0 {
+  opacity: 1;
+}
+
+#s:not(:checked) ~ .o1 {
+  display: none;
+}
+
+#s:not(:checked) ~ label.t {
+  display: inline;
+}
+
+#s:not(:checked) ~ span.t {
+  display: none;
+}
+
+.t {
+  color: white;
+  background-color: rgb(66, 139, 202);
+  font-family: "Courier New";
+  font-size: 28px;
+  padding: 5px 12px;
+  margin: 0px 1px;
+}
+
+.t::before {
+  content: "0";
+}
+
+span.h {
+  position: relative;
+  top: -18px;
+  visibility: hidden;
+  font-family: "Courier New";
+  font-size: 28px;
+  padding: 5px 12px;
+  margin: 0px 1px;
+}
+
+span.h::before {
+  content: "▲";
+}
+
+label.a {
+  position: absolute;
+  right: 0px;
+  margin-bottom: 50px;
+  font-size: 20px;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+  line-height: 1.5;
+  color: white;
+  background-color: #343a40;
+  padding: 8px 16px;
+  border: 1px solid #343a40;
+  border-radius: .3rem;
+  cursor: pointer;
+}
+
+label.a:hover {
+  background-color: #23272b;
+  border-color: #1d2124;
+}
+
+label.a::before {
+  content: "Execute Step";
+}

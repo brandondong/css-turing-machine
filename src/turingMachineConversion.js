@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import TuringMachineStateTable from './TuringMachineStateTable.js';
+import StaticCSS from './conversionStaticCSS.js';
 
 export default function toHTML(config, numTapeCells) {
   // Refer to the project's README for a detailed description of how this is supposed to work.
@@ -42,7 +43,12 @@ function addInputUI(sb, numTapeCells) {
     for (let i = 0; i < numTapeCells; i++) {
       sb.push(`<span class="t t${n} o${n}"></span>`);
     }
-    sb.push('<br>\n');
+    if (n === 0) {
+      for (let i = 0; i < numTapeCells; i++) {
+        sb.push(`<label for="t0_${i}" class="t t${n} o${n}"></label>`);
+      }
+    }
+    sb.push('<br>');
     for (let i = 0; i < numTapeCells; i++) {
       sb.push(`<span class="h h${n} o${n}"></span>`);
     }
@@ -53,31 +59,26 @@ function addInputUI(sb, numTapeCells) {
 function addMachineDisplayStyling(sb, config, numTapeCells) {
   for (let n = 0; n < 2; n++) {
     for (let i = 0; i < config.length; i++) {
-      sb.push(`#s${n}_${i}:checked~*>#s${n}::before { content: "${i}"; }\n`);
+      sb.push(`#s${n}_${i}:checked~*>#s${n}::before{content:"${i}";}\n`);
     }
-    sb.push(`#s${n}_${config.length}:checked~*>#s${n}::before { content: "HALT"; }\n`);
+    sb.push(`#s${n}_${config.length}:checked~*>#s${n}::before{content:"HALT";}\n`);
   }
-  sb.push('*:checked+');
-  for (let i = 0; i < 3 * numTapeCells + config.length + 1; i++) {
-    sb.push('*+');
-  }
-  sb.push('span.t0::before { content: "1"; }\n');
-  sb.push('*:checked+');
-  for (let i = 0; i < 5 * numTapeCells + config.length + 2; i++) {
-    sb.push('*+');
-  }
-  sb.push('span.h0 { visibility: visible; }\n');
 
+  addRuleOffsetAfterChecked(sb, 3 * numTapeCells + config.length + 1, 'span.t0::before{content:"1";}');
+  addRuleOffsetAfterChecked(sb, 4 * numTapeCells + config.length + 1, 'label.t0::before{content:"1";}');
+  addRuleOffsetAfterChecked(sb, 6 * numTapeCells + config.length + 2, 'span.h0{visibility:visible;}');
+
+  addRuleOffsetAfterChecked(sb, 4 * numTapeCells + 2, 'span.t1::before{content:"1";}');
+  addRuleOffsetAfterChecked(sb, 6 * numTapeCells + 3, 'span.h1{visibility:visible;}');
+}
+
+function addRuleOffsetAfterChecked(sb, offset, rule) {
   sb.push('*:checked+');
-  for (let i = 0; i < 3 * numTapeCells + 2; i++) {
+  for (let i = 0; i < offset; i++) {
     sb.push('*+');
   }
-  sb.push('span.t1::before { content: "1"; }\n');
-  sb.push('*:checked+');
-  for (let i = 0; i < 5 * numTapeCells + 3; i++) {
-    sb.push('*+');
-  }
-  sb.push('span.h1 { visibility: visible; }\n');
+  sb.push(rule);
+  sb.push('\n');
 }
 
 function addTuringMachineForm(sb, config) {
@@ -97,130 +98,7 @@ function addInstructions(sb) {
   sb.push('</ol>\n');
 }
 
-// From index.css.
-const BODY_STYLING = `body {
-  margin: 40px auto;
-  max-width: 1000px;
-  line-height: 1.6;
-  font-size: 18px;
-  color: #444;
-  padding: 0 10px;
-}
-
-h1, h2, h3 {
-  line-height: 1.2;
-}`;
-
-// From TuringMachineStateTable.css.
-const STATE_TABLE_CSS = `.table-overflow {
-  overflow-x: auto;
-}
-
-.statetable {
-  border: 1px solid #a2a9b1;
-  border-collapse: collapse;
-  text-align: center;
-  background-color: #f8f9fa;
-  font-family: sans-serif;
-  font-size: 14px;
-  color: #222;
-  line-height: 1.6;
-}
-
-.statetable > tbody > tr > th, .statetable > tbody > tr > td {
-  border: 1px solid #a2a9b1;
-  padding: 0.2em 0.4em;
-}
-
-.statetable > tbody > tr > th {
-  background-color: #eaecf0;
-}
-
-.instruction-labels {
-  font-size: 9pt;
-}`;
-
-const INPUT_LABEL_STYLING = `input, label {
-  display: none;
-}
-
-#machine {
-  overflow: auto;
-  white-space: nowrap;
-}
-
-#f:not(:checked) ~ .o0 {
-  opacity: 0.5;
-}
-
-#f:checked ~ .o1 {
-  opacity: 0.5;
-}
-
-#s:not(:checked) ~ .o0 {
-  opacity: 1;
-}
-
-#s:not(:checked) ~ .o1 {
-  display: none;
-}
-
-span.t {
-  color: white;
-  background-color: rgb(66, 139, 202);
-  font-family: "Courier New";
-  font-size: 28px;
-  padding: 5px 12px;
-  margin: 0px 1px;
-}
-
-span.t::before {
-  content: "0";
-}
-
-span.h {
-  position: relative;
-  top: -18px;
-  visibility: hidden;
-  font-family: "Courier New";
-  font-size: 28px;
-  padding: 5px 12px;
-  margin: 0px 1px;
-}
-
-span.h::before {
-  content: "▲";
-}
-
-label {
-  position: absolute;
-  right: 0px;
-  margin-bottom: 50px;
-  font-size: 20px;
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
-  line-height: 1.5;
-  color: white;
-  background-color: #343a40;
-  padding: 8px 16px;
-  border: 1px solid #343a40;
-  border-radius: .3rem;
-  cursor: pointer;
-}
-
-label:hover {
-  background-color: #23272b;
-  border-color: #1d2124;
-}
-
-label::before {
-  content: "Execute Step";
-}`;
-
 function addPageStyling(sb) {
-  sb.push(BODY_STYLING);
-  sb.push('\n\n');
-  sb.push(STATE_TABLE_CSS);
-  sb.push('\n\n');
-  sb.push(INPUT_LABEL_STYLING);
-  sb.push('\n\n');
+  sb.push(StaticCSS);
+  sb.push('\n');
 }
