@@ -10,13 +10,15 @@ export default function toHTML(config, numTapeCells) {
   addPageStyling(sb);
   addMachineDisplayStyling(sb, config, numTapeCells);
   sb.push('</style>\n<title>CSS Turing Machine</title>\n</head>\n<body>\n');
-  addTuringMachineForm(sb, config);
-  addInstructions(sb);
-  sb.push('<hr>\n<div id="machine">\n');
+  sb.push('<p>This page implements the below Turing machine without executing any Javascript or making any network requests. <a href="https://github.com/brandondong/css-turing-machine/blob/master/README.md" target="_blank">How does it work?</a></p>\n');
+  sb.push('<div id="machine">\n');
   addStateInputs(sb, config, numTapeCells);
   addLogicLabels(sb, config, numTapeCells);
   addInputUI(sb, numTapeCells);
-  sb.push('</div>\n</body>\n</html>');
+  sb.push('</div>\n');
+  sb.push('<hr>\n');
+  addTuringMachineForm(sb, config);
+  sb.push('</body>\n</html>');
   return sb.join('');
 }
 
@@ -67,11 +69,15 @@ function addInputUI(sb, numTapeCells) {
       }
     }
     sb.push('<br>');
+    if (n === 0) {
+      sb.push('<label for="t0_0" class="h"></label>');
+    }
     for (let i = 0; i < numTapeCells; i++) {
       sb.push(`<span class="h h${n} o${n}"></span>`);
     }
     sb.push('\n');
   }
+  sb.push('<span class="instruction">Set the initial tape input by clicking on the squares above.</span>\n');
 }
 
 function addMachineDisplayStyling(sb, config, numTapeCells) {
@@ -87,10 +93,10 @@ function addMachineDisplayStyling(sb, config, numTapeCells) {
 
   addRuleOffsetAfterChecked(sb, 7 * numTapeCells + 3 * config.length + 5, 'span.t0::before{content:"1";}');
   addRuleOffsetAfterChecked(sb, 8 * numTapeCells + 3 * config.length + 5, 'label.t0::before{content:"1";}');
-  addRuleOffsetAfterChecked(sb, 10 * numTapeCells + 3 * config.length + 6, 'span.h0{visibility:visible;}');
+  addRuleOffsetAfterChecked(sb, 10 * numTapeCells + 3 * config.length + 7, 'span.h0{visibility:visible;}');
 
-  addRuleOffsetAfterChecked(sb, 8 * numTapeCells + 2 * config.length + 6, 'span.t1::before{content:"1";}');
-  addRuleOffsetAfterChecked(sb, 10 * numTapeCells + 2 * config.length + 7, 'span.h1{visibility:visible;}');
+  addRuleOffsetAfterChecked(sb, 8 * numTapeCells + 2 * config.length + 7, 'span.t1::before{content:"1";}');
+  addRuleOffsetAfterChecked(sb, 10 * numTapeCells + 2 * config.length + 8, 'span.h1{visibility:visible;}');
 }
 
 function addRuleOffsetAfterChecked(sb, offset, rule) {
@@ -104,19 +110,9 @@ function addRuleOffsetAfterChecked(sb, offset, rule) {
 
 function addTuringMachineForm(sb, config) {
   const form = ReactDOMServer.renderToStaticMarkup(<TuringMachineStateTable config={config} />);
-  sb.push('<h2>Turing Machine:</h2>\n');
+  sb.push('<h3>Reference:</h3>');
   sb.push(form);
   sb.push('\n');
-  sb.push('<p>This page implements the above Turing machine without executing any Javascript or making any network requests!</p>\n');
-}
-
-function addInstructions(sb) {
-  sb.push('<h2>Instructions:</h2>\n');
-  sb.push('<ol>\n');
-  sb.push('<li>Select the desired initial tape input.</li>\n');
-  sb.push('<li>When ready, press the <em>Start</em> button.</li>\n');
-  sb.push('<li>Press the <em>Execute Step</em> button repeatedly to forward the program\'s execution. When the button is gone, the program has halted.</li>\n');
-  sb.push('</ol>\n');
 }
 
 function addPageStyling(sb) {

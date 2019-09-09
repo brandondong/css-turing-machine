@@ -33,6 +33,18 @@ input, label {
   display: inline;
 }
 
+#s:checked ~ .instruction {
+  display: none;
+}
+
+#s:not(:checked) ~ label.h {
+  display: inline;
+}
+
+#s:not(:checked) ~ label.h + span.h {
+  display: none;
+}
+
 .t {
   color: white;
   background-color: rgb(66, 139, 202);
@@ -50,7 +62,7 @@ label.t {
   cursor: pointer;
 }
 
-span.h {
+.h {
   position: relative;
   top: -18px;
   visibility: hidden;
@@ -60,8 +72,13 @@ span.h {
   margin: 0px 1px;
 }
 
-span.h::before {
+.h::before {
   content: "▲";
+}
+
+label.h {
+  visibility: visible;
+  cursor: pointer;
 }
 
 label.l {

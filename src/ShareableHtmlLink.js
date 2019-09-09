@@ -25,7 +25,7 @@ class ShareableLink extends React.Component {
     const copyButtonText = this.state.copied ? 'Copied!' : 'Copy to Clipboard';
     return (
       <>
-        <div>Shareable Link:</div>
+        <div>Generated Link:</div>
         <input value={this.props.url} ref={this.textInput} readOnly /> <button onClick={() => this.copyToClipboard()}>{copyButtonText}</button>
       </>);
   }
