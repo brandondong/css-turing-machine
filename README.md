@@ -302,3 +302,10 @@ Assuming stateIdx and stateTable[0][1].next are equal to three, the first line c
 
 ### Generalizing to many iterations
 
+There can be a possibly infinite number of Turing machine iterations so we cannot just create more destination inputs to scale up. The key is that we only ever need to keep track of the current inputs and the inputs currently being written to. Once an iteration is done, we can just swap so that the inputs we've just written to are now the current inputs we are computing from.
+
+Information about which set of inputs is which will have to be stored in another boolean input that can be toggled. The tricky thing here is that computing the visibility of the associated label in this case would be tremendously complex as it can only be toggled after an iteration is fully complete or if we know that all other labels are invisible. Instead, we can just make the label always visible but place it under all the other labels so that it is guaranteed to be toggled last.
+
+### Halting
+
+The halting state does not need to be treated any differently than the other states in the case of input and label representation. To stop the cycle of iterations, we can hide the bottommost iteration toggle label if the new state is the halting state. Then, once the user finishes updating the inputs for the current iteration, there will be no way to continue and the inputs will reflect the final results.

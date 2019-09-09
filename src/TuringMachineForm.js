@@ -7,7 +7,7 @@ import toHTML from './turingMachineConversion.js';
 const DEFAULT_STATE_0 = { 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'L', next: '0' } };
 
 export default function TuringMachineForm() {
-  const [numTapeCells, setNumTapeCells] = useState("8");
+  const [numTapeCells, setNumTapeCells] = useState("16");
   const [config, setConfig] = useState([DEFAULT_STATE_0]);
   const [generatedHTML, setGeneratedHTML] = useState(null);
 
