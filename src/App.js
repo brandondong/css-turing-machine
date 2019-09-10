@@ -1,8 +1,7 @@
 import React from 'react';
 import './App.css';
 import TuringMachineForm from './TuringMachineForm.js';
-
-const GITHUB_LINK = 'https://github.com/brandondong/css-turing-machine';
+import { GITHUB_LINK } from './contants.js';
 
 function App() {
   return (
@@ -14,7 +13,7 @@ function App() {
       </ol>
       <TuringMachineForm />
       <div className="footer">
-        <hr></hr>
+        <hr />
         Check out the <a href={GITHUB_LINK} target="_blank" rel="noopener noreferrer">source code on GitHub</a>.
       </div>
     </>
