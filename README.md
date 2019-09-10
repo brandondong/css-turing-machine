@@ -293,9 +293,15 @@ def shouldShowRadioLabel(stateIdx):
   return (currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].next == stateIdx and not destStates[stateIdx]) or
     (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].next == stateIdx and not destStates[stateIdx]) # ...
 ```
-Assuming stateIdx and stateTable[0][1].next are equal to three, the first line can be expressed as:
+Assuming stateIdx, stateTable[0][1].next, and stateTable[0][0].next are equal to three, the first line can be expressed as:
 ```css
-#s0_0:checked ~ input:checked + * + * + * + input:checked ~ #s1_3:not(:checked) + * + * + * + label {
+#s0_0:checked ~ [name=h0]:checked + * + * + * + input:checked ~ #s1_3:not(:checked) + * + * + * + label {
+  display: inline;
+}
+```
+And the second as:
+```css
+#s0_0:checked ~ [name=h0]:checked + * + * + * + input:not(:checked) ~ #s1_3:not(:checked) + * + * + * + label {
   display: inline;
 }
 ```

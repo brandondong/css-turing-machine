@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function ShareableHtmlLink({ html }) {
   if (html === null) {
@@ -11,6 +11,9 @@ export default function ShareableHtmlLink({ html }) {
 function ShareableLink({ url }) {
   const textInput = useRef(null);
   const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    textInput.current.focus();
+  }, []);
 
   const copyToClipboard = () => {
     textInput.current.select();

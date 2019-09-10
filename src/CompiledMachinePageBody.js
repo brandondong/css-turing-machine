@@ -43,7 +43,7 @@ function LogicLabels({ config, numTapeCells }) {
   let counter = 0;
   for (let i = 0; i < 2; i++) {
     for (let state = 0; state < config.length + 1; state++) {
-      labels.push(<label htmlFor={`s${i}_${state}`} className="l" key={counter++} ></label>);
+      labels.push(<label htmlFor={`s${i}_${state}`} id={`ls${i}_${state}`} className="l" key={counter++} ></label>);
     }
     for (let pos = 0; pos < numTapeCells; pos++) {
       labels.push(<label htmlFor={`h${i}_${pos}`} className="l" key={counter++} ></label>);
