@@ -57,25 +57,25 @@ To simplify, let us first consider what would have to be done to compute a singl
 <!-- All inputs are invisible so the user cannot toggle them manually. -->
 
 <!-- Current state. -->
-<input type="radio" name="s0" id="s0_0"><input type="radio" name="s0" id="s0_1">...
-
-<!-- Current head position. -->
-<input type="radio" name="h0" id="h0_0"><input type="radio" name="h0" id="h0_1">...
-
-<!-- Current tape. -->
-<input type="checkbox" id="t0_0"><input type="checkbox" id="t0_1">...
+<input type="radio" name="s0" id="s0_0"><input type="radio" name="s0" id="s0_1">
 
 <!-- Next state. -->
-<input type="radio" name="s1" id="s1_0"><input type="radio" name="s1" id="s1_1">...
+<input type="radio" name="s1" id="s1_0"><input type="radio" name="s1" id="s1_1">
+
+<!-- Current head position. -->
+<input type="radio" name="h0" id="h0_0"><input type="radio" name="h0" id="h0_1">
+
+<!-- Current tape. -->
+<input type="checkbox" id="t0_0"><input type="checkbox" id="t0_1">
 
 <!-- Next head position. -->
-<input type="radio" name="h1" id="h1_0"><input type="radio" name="h1" id="h1_1">...
+<input type="radio" name="h1" id="h1_0"><input type="radio" name="h1" id="h1_1">
 
 <!-- Next tape. -->
-<input type="checkbox" id="t1_0"><input type="checkbox" id="t1_1">...
+<input type="checkbox" id="t1_0"><input type="checkbox" id="t1_1">
 
 <!-- Labels controlling the entire second half of inputs, stacked on top of each other using absolute positioning. -->
-<label for="s1_0"></label><label for="s1_1"></label>...
+<label for="s1_0"></label><label for="s1_1"></label><label for="h1_0"></label><label for="h1_1"></label><label for="t1_0"></label><label for="t1_1"></label>
 ```
 Notice that we have to store the destination state separately. We cannot update our data in place as we may overwrite old inputs that are still needed part way through into the computation.
 
@@ -161,7 +161,7 @@ This fits the format described earlier with multiple clauses made up of logical 
 This will work but will require a separate rule for each tape cell which we don't want. Notice that regardless of what the value of tapeCellIdx is, the distance between the elements we're identifying by id's are always the same as well as the distance to the matching label. Therefore, we can use just one rule for all tape cells:
 ```css
 /* Statically known offsets between each. */
-input:not(:checked) + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
+[name=h0]:not(:checked) + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
   display: inline;
 }
 ```
@@ -295,13 +295,13 @@ def shouldShowRadioLabel(stateIdx):
 ```
 Assuming stateIdx, stateTable[0][1].next, and stateTable[0][0].next are equal to three, the first line can be expressed as:
 ```css
-#s0_0:checked ~ [name=h0]:checked + * + * + * + input:checked ~ #s1_3:not(:checked) + * + * + * + label {
+#s0_0:checked ~ [name=h0]:checked + * + *:checked ~ #s1_3:not(:checked) ~ [for=s1_3] {
   display: inline;
 }
 ```
 And the second as:
 ```css
-#s0_0:checked ~ [name=h0]:checked + * + * + * + input:not(:checked) ~ #s1_3:not(:checked) + * + * + * + label {
+#s0_0:checked ~ [name=h0]:checked + * + *:not(:checked) ~ #s1_3:not(:checked) ~ [for=s1_3] {
   display: inline;
 }
 ```

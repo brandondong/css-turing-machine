@@ -29,7 +29,7 @@ input, label {
   display: none;
 }
 
-#s:not(:checked) ~ label.start {
+#s:not(:checked) ~ [for=s] {
   display: inline;
 }
 
@@ -81,7 +81,7 @@ label.h {
   cursor: pointer;
 }
 
-label.l {
+label:not(.m) {
   position: absolute;
   left: 0px;
   top: 330px;
@@ -96,15 +96,15 @@ label.l {
   cursor: pointer;
 }
 
-label.l:hover {
+label:not(.m):hover {
   background-color: #218838;
   border-color: #1e7e34;
 }
 
-label.l::before {
+label:not(.m)::before {
   content: "Execute Step";
 }
 
-label.start::before {
-  content: "Start";
+[for=s]::before {
+  content: "Start" !important;
 }

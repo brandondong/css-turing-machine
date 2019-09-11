@@ -24,6 +24,8 @@ function StateInputs({ config, numTapeCells }) {
     for (let state = 0; state < config.length + 1; state++) {
       inputs.push(<input type="radio" defaultChecked={state === 0} name={`s${i}`} id={`s${i}_${state}`} key={counter++} />);
     }
+  }
+  for (let i = 0; i < 2; i++) {
     for (let pos = 0; pos < numTapeCells; pos++) {
       inputs.push(<input type="radio" defaultChecked={pos === 0} name={`h${i}`} id={`h${i}_${pos}`} key={counter++} />);
     }
@@ -43,19 +45,19 @@ function LogicLabels({ config, numTapeCells }) {
   let counter = 0;
   for (let i = 0; i < 2; i++) {
     for (let state = 0; state < config.length + 1; state++) {
-      labels.push(<label htmlFor={`s${i}_${state}`} id={`ls${i}_${state}`} className="l" key={counter++} ></label>);
+      labels.push(<label htmlFor={`s${i}_${state}`} key={counter++}></label>);
     }
     for (let pos = 0; pos < numTapeCells; pos++) {
-      labels.push(<label htmlFor={`h${i}_${pos}`} className="l" key={counter++} ></label>);
+      labels.push(<label htmlFor={`h${i}_${pos}`} key={counter++}></label>);
     }
     for (let idx = 0; idx < numTapeCells; idx++) {
-      labels.push(<label htmlFor={`t${i}_${idx}`} className="l" key={counter++} ></label>);
+      labels.push(<label htmlFor={`t${i}_${idx}`} key={counter++}></label>);
     }
   }
   return <>
-    <label htmlFor="f" className="l toggle"></label>
+    <label htmlFor="f"></label>
     {labels}
-    <label htmlFor="s" className="l start"></label>
+    <label htmlFor="s"></label>
   </>;
 }
 
@@ -64,21 +66,21 @@ function InputUI({ numTapeCells }) {
   const elements = [];
   let counter = 0;
   for (let n = 0; n < 2; n++) {
-    elements.push(<p className={`o${n}`} key={counter++} >State: <span id={`s${n}`}></span></p>);
+    elements.push(<p className={`o${n}`} key={counter++}>State: <span id={`s${n}`}></span></p>);
     for (let i = 0; i < numTapeCells; i++) {
-      elements.push(<span className={`t t${n} o${n}`} key={counter++} ></span>);
+      elements.push(<span className={`t t${n} o${n}`} key={counter++}></span>);
     }
     if (n === 0) {
       for (let i = 0; i < numTapeCells; i++) {
-        elements.push(<label htmlFor={`t0_${i}`} className={`t t${n} o${n}`} key={counter++} ></label>);
+        elements.push(<label htmlFor={`t0_${i}`} className={`m t t${n} o${n}`} key={counter++}></label>);
       }
     }
     elements.push(<br key={counter++} />);
     if (n === 0) {
-      elements.push(<label htmlFor="t0_0" className="h" key={counter++} ></label>);
+      elements.push(<label htmlFor="t0_0" className="m h" key={counter++}></label>);
     }
     for (let i = 0; i < numTapeCells; i++) {
-      elements.push(<span className={`h h${n} o${n}`} key={counter++} ></span>);
+      elements.push(<span className={`h h${n} o${n}`} key={counter++}></span>);
     }
   }
   return <>
