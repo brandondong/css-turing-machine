@@ -173,7 +173,7 @@ The third line in our function can be handled similarly. First, when tapeCellIdx
 ```
 When generalized, we can again just create one rule for all tape cells:
 ```css
-#s0_0:checked ~ input:checked + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
+#s0_0:checked ~ [name=h0]:checked + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
   display: inline;
 }
 ```

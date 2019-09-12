@@ -10,44 +10,72 @@ export default function toHTML(config, numTapeCells) {
   addPageStyling(sb);
   addMachineDisplayStyling(sb, config, numTapeCells);
   addStateLabelStyling(sb, config, numTapeCells);
-  addTapeCellStyling(sb);
+  addTapeCellStyling(sb, config, numTapeCells);
   sb.push('</style>\n<title>CSS Turing Machine</title>\n</head>\n<body>\n');
   addCompiledMachinePageBody(sb, config, numTapeCells);
   sb.push('</body>\n</html>');
   return sb.join('');
 }
 
-function addTapeCellStyling(sb) {
-
+function addTapeCellStyling(sb, config, numTapeCells) {
+  for (let i = 0; i < 2; i++) {
+    sb.push('#s:checked~#f:not(:checked)~[name=h0]:not(:checked)+');
+    sb.push('*+'.repeat(numTapeCells - 1));
+    if (i === 0) {
+      sb.push(':checked');
+    } else {
+      sb.push(':not(:checked)');
+    }
+    sb.push('+*'.repeat(2 * numTapeCells - 1));
+    if (i === 0) {
+      sb.push('+:not(:checked)');
+    } else {
+      sb.push('+:checked');
+    }
+    sb.push('+*'.repeat(4 * numTapeCells + 2 * config.length + 3));
+    sb.push('{display:inline;}\n');
+  }
+  for (let i = 0; i < 2; i++) {
+    sb.push('#f:checked~');
+    if (i === 0) {
+      sb.push(':not(:checked)');
+    } else {
+      sb.push(':checked');
+    }
+    sb.push('+*'.repeat(numTapeCells - 1));
+    sb.push('+[name=h1]:not(:checked)');
+    sb.push('+*'.repeat(numTapeCells - 1));
+    if (i === 0) {
+      sb.push('+:checked');
+    } else {
+      sb.push('+:not(:checked)');
+    }
+    sb.push('+*'.repeat(2 * numTapeCells + config.length + 2));
+    sb.push('{display:inline;}\n');
+  }
 }
 
 function addStateLabelStyling(sb, config, numTapeCells) {
-  for (let i = 0; i < config.length; i++) {
-    const state = config[i];
-    for (let read = 0; read < 2; read++) {
-      const nextNum = getNextState(state, read, config);
-      sb.push(`#s:checked~#f:not(:checked)~#s0_${i}:checked~#s1_${nextNum}:not(:checked)~[name=h0]:checked`);
-      sb.push('+*'.repeat(numTapeCells - 1));
-      if (read === 0) {
-        sb.push('+*:not(:checked)');
-      } else {
-        sb.push('+*:checked');
+  for (let n = 0; n < 2; n++) {
+    const inverseN = 1 - n;
+    for (let i = 0; i < config.length; i++) {
+      const state = config[i];
+      for (let read = 0; read < 2; read++) {
+        const nextNum = getNextState(state, read, config);
+        if (n === 0) {
+          sb.push(`#s:checked~#f:not(:checked)~#s0_${i}:checked~#s1_${nextNum}:not(:checked)`);
+        } else {
+          sb.push(`#f:checked~#s0_${nextNum}:not(:checked)~#s1_${i}:checked`);
+        }
+        sb.push(`~[name=h${n}]:checked`);
+        sb.push('+*'.repeat(numTapeCells - 1));
+        if (read === 0) {
+          sb.push('+:not(:checked)');
+        } else {
+          sb.push('+:checked');
+        }
+        sb.push(`~[for=s${inverseN}_${nextNum}]{display:inline;}\n`);
       }
-      sb.push(`~[for=s1_${nextNum}]{display:inline;}\n`);
-    }
-  }
-  for (let i = 0; i < config.length; i++) {
-    const state = config[i];
-    for (let read = 0; read < 2; read++) {
-      const nextNum = getNextState(state, read, config);
-      sb.push(`#f:checked~#s0_${nextNum}:not(:checked)~#s1_${i}:checked~[name=h1]:checked`);
-      sb.push('+*'.repeat(numTapeCells - 1));
-      if (read === 0) {
-        sb.push('+*:not(:checked)');
-      } else {
-        sb.push('+*:checked');
-      }
-      sb.push(`~[for=s0_${nextNum}]{display:inline;}\n`);
     }
   }
 }
@@ -81,7 +109,7 @@ function addStateDisplayStyling(sb, config) {
 }
 
 function addRuleOffsetAfterChecked(sb, offset, rule) {
-  sb.push('*:checked+');
+  sb.push(':checked+');
   for (let i = 0; i < offset; i++) {
     sb.push('*+');
   }
