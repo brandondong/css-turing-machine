@@ -53,6 +53,49 @@ function addTapeCellStyling(sb, config, numTapeCells) {
     sb.push('+*'.repeat(2 * numTapeCells + config.length + 2));
     sb.push('{display:inline;}\n');
   }
+  for (let i = 0; i < config.length; i++) {
+    const state = config[i];
+    for (let read = 0; read < 2; read++) {
+      const write = state[read].write;
+      sb.push(`#s:checked~#f:not(:checked)~#s0_${i}:checked~[name=h0]:checked`);
+      sb.push('+*'.repeat(numTapeCells - 1));
+      if (read === 0) {
+        sb.push('+:not(:checked)');
+      } else {
+        sb.push('+:checked');
+      }
+      sb.push('+*'.repeat(2 * numTapeCells - 1));
+      if (write === '0') {
+        sb.push('+:checked');
+      } else {
+        sb.push('+:not(:checked)');
+      }
+      sb.push('+*'.repeat(4 * numTapeCells + 2 * config.length + 3));
+      sb.push('{display:inline;}\n');
+    }
+  }
+  for (let i = 0; i < config.length; i++) {
+    const state = config[i];
+    for (let read = 0; read < 2; read++) {
+      const write = state[read].write;
+      sb.push(`#f:checked~#s1_${i}:checked~`);
+      if (write === '0') {
+        sb.push(':checked');
+      } else {
+        sb.push(':not(:checked)');
+      }
+      sb.push('+*'.repeat(numTapeCells - 1));
+      sb.push('+[name=h1]:checked');
+      sb.push('+*'.repeat(numTapeCells - 1));
+      if (read === 0) {
+        sb.push('+:not(:checked)');
+      } else {
+        sb.push('+:checked');
+      }
+      sb.push('+*'.repeat(2 * numTapeCells + config.length + 2));
+      sb.push('{display:inline;}\n');
+    }
+  }
 }
 
 function addStateLabelStyling(sb, config, numTapeCells) {
