@@ -49,6 +49,33 @@ function addHeadPosStyling(sb, config, numTapeCells) {
       sb.push('{display:inline;}\n');
     }
   }
+  for (let i = 0; i < config.length; i++) {
+    const state = config[i];
+    for (let read = 0; read < 2; read++) {
+      const dir = state[read].move;
+      sb.push('#f:checked~:not(:checked)');
+      if (dir === 'L') {
+        sb.push('+*'.repeat(2 * numTapeCells - 2));
+        sb.push('+[name=h1]:checked+[name=h1]');
+        sb.push('+*'.repeat(numTapeCells - 2));
+      } else {
+        sb.push('+*'.repeat(2 * numTapeCells));
+        sb.push('+[name=h1]+[name=h1]:checked');
+        sb.push('+*'.repeat(numTapeCells - 1));
+      }
+      if (read === 0) {
+        sb.push('+:not(:checked)');
+      } else {
+        sb.push('+:checked');
+      }
+      if (dir === 'L') {
+        sb.push('+*'.repeat(numTapeCells + config.length + 3));
+      } else {
+        sb.push('+*'.repeat(numTapeCells + config.length + 1));
+      }
+      sb.push('{display:inline;}\n');
+    }
+  }
 }
 
 function addTapeCellStyling(sb, config, numTapeCells) {
