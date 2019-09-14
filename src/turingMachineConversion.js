@@ -11,20 +11,54 @@ export default function toHTML(config, numTapeCells) {
   addMachineDisplayStyling(sb, config, numTapeCells);
   addStateLabelStyling(sb, config, numTapeCells);
   addTapeCellStyling(sb, config, numTapeCells);
+  addHeadPosStyling(sb, config, numTapeCells);
   sb.push('</style>\n<title>CSS Turing Machine</title>\n</head>\n<body>\n');
   addCompiledMachinePageBody(sb, config, numTapeCells);
   sb.push('</body>\n</html>');
   return sb.join('');
 }
 
+function addHeadPosStyling(sb, config, numTapeCells) {
+  if (numTapeCells === 1) {
+    return;
+  }
+  for (let i = 0; i < config.length; i++) {
+    const state = config[i];
+    for (let read = 0; read < 2; read++) {
+      const dir = state[read].move;
+      sb.push('#s:checked~#f:not(:checked)~');
+      if (dir === 'L') {
+        sb.push('[name=h0]:checked+[name=h0]');
+        sb.push('+*'.repeat(numTapeCells - 2));
+      } else {
+        sb.push('[name=h0]+[name=h0]:checked');
+        sb.push('+*'.repeat(numTapeCells - 1));
+      }
+      if (read === 0) {
+        sb.push('+:not(:checked)');
+      } else {
+        sb.push('+:checked');
+      }
+      if (dir === 'L') {
+        sb.push('+*'.repeat(numTapeCells));
+      } else {
+        sb.push('+*'.repeat(numTapeCells - 2));
+      }
+      sb.push('+:not(:checked)');
+      sb.push('+*'.repeat(4 * numTapeCells + 2 * config.length + 3));
+      sb.push('{display:inline;}\n');
+    }
+  }
+}
+
 function addTapeCellStyling(sb, config, numTapeCells) {
   for (let i = 0; i < 2; i++) {
-    sb.push('#s:checked~#f:not(:checked)~[name=h0]:not(:checked)+');
-    sb.push('*+'.repeat(numTapeCells - 1));
+    sb.push('#s:checked~#f:not(:checked)~[name=h0]:not(:checked)');
+    sb.push('+*'.repeat(numTapeCells - 1));
     if (i === 0) {
-      sb.push(':checked');
+      sb.push('+:checked');
     } else {
-      sb.push(':not(:checked)');
+      sb.push('+:not(:checked)');
     }
     sb.push('+*'.repeat(2 * numTapeCells - 1));
     if (i === 0) {
