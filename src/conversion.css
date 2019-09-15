@@ -39,9 +39,10 @@ input, label {
 
 #s:not(:checked) ~ label.h {
   display: inline;
+  visibility: hidden;
 }
 
-#s:not(:checked) ~ label.h + span.h {
+#s:not(:checked) ~ span.h {
   display: none;
 }
 

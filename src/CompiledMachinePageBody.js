@@ -26,8 +26,9 @@ function StateInputs({ config, numTapeCells }) {
     }
   }
   for (let i = 0; i < 2; i++) {
+    const halfway = Math.ceil(numTapeCells / 2) - 1;
     for (let pos = 0; pos < numTapeCells; pos++) {
-      inputs.push(<input type="radio" defaultChecked={pos === 0} name={`h${i}`} id={`h${i}_${pos}`} key={counter++} />);
+      inputs.push(<input type="radio" defaultChecked={pos === halfway} name={`h${i}`} id={`h${i}_${pos}`} key={counter++} />);
     }
     for (let idx = 0; idx < numTapeCells; idx++) {
       inputs.push(<input type="checkbox" id={`t${i}_${idx}`} key={counter++} />);
@@ -76,11 +77,13 @@ function InputUI({ numTapeCells }) {
       }
     }
     elements.push(<br key={counter++} />);
-    if (n === 0) {
-      elements.push(<label htmlFor="t0_0" className="m h" key={counter++}></label>);
-    }
     for (let i = 0; i < numTapeCells; i++) {
       elements.push(<span className={`h h${n} o${n}`} key={counter++}></span>);
+    }
+    if (n === 0) {
+      for (let i = 0; i < numTapeCells; i++) {
+        elements.push(<label htmlFor={`t0_${i}`} className="m h" key={counter++}></label>);
+      }
     }
   }
   return <>

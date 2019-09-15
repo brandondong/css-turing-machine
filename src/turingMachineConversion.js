@@ -185,28 +185,32 @@ function addStateLabelStyling(sb, config, numTapeCells) {
 }
 
 function getNextState(state, read, config) {
-  const next = parseInt(state[read].next);
-  return isNaN(next) ? config.length : next;
+  const next = state[read].next;
+  const index = config.findIndex(s => s.name === next);
+  return index === -1 ? config.length : index;
 }
 
 function addMachineDisplayStyling(sb, config, numTapeCells) {
   const haltingState = config.length;
   sb.push(`#s:checked~#s0_${haltingState}:not(:checked)~#s1_${haltingState}:not(:checked)~[for=f]{display:inline;}\n`);
+  const halfway = Math.ceil(numTapeCells / 2) - 1;
+  sb.push(`#s:not(:checked)~[for=t0_${halfway}]{visibility:visible !important;}\n`);
 
   addStateDisplayStyling(sb, config);
 
   addRuleOffsetAfterChecked(sb, 7 * numTapeCells + 2 * config.length + 4, 'span.t0::before{content:"1";}');
   addRuleOffsetAfterChecked(sb, 8 * numTapeCells + 2 * config.length + 4, 'label.t0::before{content:"1";}');
-  addRuleOffsetAfterChecked(sb, 10 * numTapeCells + 2 * config.length + 6, 'span.h0{visibility:visible;}');
+  addRuleOffsetAfterChecked(sb, 10 * numTapeCells + 2 * config.length + 5, 'span.h0{visibility:visible;}');
 
-  addRuleOffsetAfterChecked(sb, 8 * numTapeCells + 2 * config.length + 7, 'span.t1::before{content:"1";}');
-  addRuleOffsetAfterChecked(sb, 10 * numTapeCells + 2 * config.length + 8, 'span.h1{visibility:visible;}');
+  addRuleOffsetAfterChecked(sb, 9 * numTapeCells + 2 * config.length + 6, 'span.t1::before{content:"1";}');
+  addRuleOffsetAfterChecked(sb, 11 * numTapeCells + 2 * config.length + 7, 'span.h1{visibility:visible;}');
 }
 
 function addStateDisplayStyling(sb, config) {
   for (let n = 0; n < 2; n++) {
     for (let i = 0; i < config.length; i++) {
-      sb.push(`#s${n}_${i}:checked~*>#s${n}::before{content:"${i}";}\n`);
+      const name = config[i].name;
+      sb.push(`#s${n}_${i}:checked~*>#s${n}::before{content:"${name}";}\n`);
     }
     sb.push(`#s${n}_${config.length}:checked~*>#s${n}::before{content:"HALT";}\n`);
   }

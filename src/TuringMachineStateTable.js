@@ -8,10 +8,10 @@ export default function TuringMachineStateTable({ config, setConfig }) {
         <tbody>
           <tr>
             <th rowSpan={2}>Tape symbol</th>
-            {config.map((_, idx) => <th key={idx} colSpan={3}>{`Current state ${idx}`}</th>)}
+            {config.map((c) => <th key={c.name} colSpan={3}>{`Current state ${c.name}`}</th>)}
           </tr>
           <tr className="instruction-labels">
-            {config.map((_, idx) => <React.Fragment key={idx}><td>Write symbol</td><td>Move tape</td><td>Next state</td></React.Fragment>)}
+            {config.map((c) => <React.Fragment key={c.name}><td>Write symbol</td><td>Move tape</td><td>Next state</td></React.Fragment>)}
           </tr>
           <tr>
             <td>0</td>
@@ -28,8 +28,8 @@ export default function TuringMachineStateTable({ config, setConfig }) {
 }
 
 function renderStateInfo(config, tapeSymbol, setConfig) {
-  return config.map((_, idx) => (
-    <React.Fragment key={idx}>
+  return config.map((c, idx) => (
+    <React.Fragment key={c.name}>
       <td>
         <StateTableSelect config={config} idx={idx} tapeSymbol={tapeSymbol} prop="write" setConfig={setConfig}>
           <option value={0}>0</option>
@@ -44,7 +44,7 @@ function renderStateInfo(config, tapeSymbol, setConfig) {
       </td>
       <td>
         <StateTableSelect config={config} idx={idx} tapeSymbol={tapeSymbol} prop="next" setConfig={setConfig} boldReadOnly>
-          {config.map((_, idx) => <option key={idx} value={idx}>{idx}</option>)}
+          {config.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
           <option value={'HALT'}>HALT</option>
         </StateTableSelect>
       </td>
