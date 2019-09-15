@@ -2,110 +2,30 @@ input, label {
   display: none;
 }
 
+label {
+  cursor: pointer;
+}
+
 #machine {
   position: relative;
   overflow: auto;
   white-space: nowrap;
   height: 430px;
-}
-
-#s:checked ~ #f:not(:checked) ~ .o0 {
-  opacity: 0.5;
-}
-
-#f:checked ~ .o1 {
-  opacity: 0.5;
-}
-
-#s:not(:checked) ~ .o1 {
-  display: none;
-}
-
-#s:not(:checked) ~ label.t {
-  display: inline;
-}
-
-#s:not(:checked) ~ span.t {
-  display: none;
+  user-select: none;
 }
 
 #s:not(:checked) ~ [for=s] {
   display: inline;
 }
 
-#s:checked ~ .instruction {
+#s:checked ~ :last-child {
   display: none;
-}
-
-#s:not(:checked) ~ label.h {
-  display: inline;
-  visibility: hidden;
-}
-
-#s:not(:checked) ~ span.h {
-  display: none;
-}
-
-.t {
-  color: white;
-  background-color: rgb(66, 139, 202);
-  font-family: "Courier New";
-  font-size: 28px;
-  padding: 5px 12px;
-  margin: 0px 1px;
-}
-
-.t::before {
-  content: "0";
-}
-
-label.t {
-  cursor: pointer;
-}
-
-.h {
-  position: relative;
-  top: -18px;
-  visibility: hidden;
-  font-family: "Courier New";
-  font-size: 28px;
-  padding: 5px 12px;
-  margin: 0px 1px;
-}
-
-.h::before {
-  content: "▲";
-}
-
-label.h {
-  visibility: visible;
-  cursor: pointer;
-}
-
-label:not(.m) {
-  position: absolute;
-  left: 0px;
-  top: 330px;
-  font-size: 16px;
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
-  line-height: 1.5;
-  color: white;
-  background-color: #28a745;
-  padding: 6px 12px;
-  border: 1px solid #28a745;
-  border-radius: .25rem;
-  cursor: pointer;
-}
-
-label:not(.m):hover {
-  background-color: #218838;
-  border-color: #1e7e34;
-}
-
-label:not(.m)::before {
-  content: "Execute Step";
 }
 
 [for=s]::before {
-  content: "Start" !important;
+  content: "Start";
+}
+
+#machine > p::before {
+  content: "State: ";
 }

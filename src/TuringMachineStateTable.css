@@ -21,6 +21,7 @@
 .statetable > tbody > tr > th {
   background-color: #eaecf0;
   position: relative;
+  background-clip: padding-box;
 }
 
 .close-icon {

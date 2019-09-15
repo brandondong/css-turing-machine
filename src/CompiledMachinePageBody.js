@@ -67,27 +67,27 @@ function InputUI({ numTapeCells }) {
   const elements = [];
   let counter = 0;
   for (let n = 0; n < 2; n++) {
-    elements.push(<p className={`o${n}`} key={counter++}>State: <span id={`s${n}`}></span></p>);
+    elements.push(<p key={counter++}></p>);
     for (let i = 0; i < numTapeCells; i++) {
-      elements.push(<span className={`t t${n} o${n}`} key={counter++}></span>);
+      elements.push(<span key={counter++}></span>);
     }
     if (n === 0) {
       for (let i = 0; i < numTapeCells; i++) {
-        elements.push(<label htmlFor={`t0_${i}`} className={`m t t${n} o${n}`} key={counter++}></label>);
+        elements.push(<label htmlFor={`t0_${i}`} key={counter++}></label>);
       }
     }
     elements.push(<br key={counter++} />);
     for (let i = 0; i < numTapeCells; i++) {
-      elements.push(<span className={`h h${n} o${n}`} key={counter++}></span>);
+      elements.push(<span key={counter++}></span>);
     }
     if (n === 0) {
       for (let i = 0; i < numTapeCells; i++) {
-        elements.push(<label htmlFor={`t0_${i}`} className="m h" key={counter++}></label>);
+        elements.push(<label htmlFor={`t0_${i}`} key={counter++}></label>);
       }
     }
   }
   return <>
     {elements}
-    <span className="instruction">Set the initial tape input by clicking on the squares above.</span>
+    <div>Set the initial tape input by clicking on the squares above.</div>
   </>;
 }
