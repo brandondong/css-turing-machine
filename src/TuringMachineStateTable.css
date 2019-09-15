@@ -20,6 +20,19 @@
 
 .statetable > tbody > tr > th {
   background-color: #eaecf0;
+  position: relative;
+}
+
+.close-icon {
+  position: absolute;
+  top: 0px;
+  right: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.close-icon:hover {
+  color: #666;
 }
 
 .instruction-labels {

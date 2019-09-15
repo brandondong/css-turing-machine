@@ -8,7 +8,11 @@ export default function TuringMachineStateTable({ config, setConfig }) {
         <tbody>
           <tr>
             <th rowSpan={2}>Tape symbol</th>
-            {config.map((c) => <th key={c.name} colSpan={3}>{`Current state ${c.name}`}</th>)}
+            {config.map((c, idx) => <th key={c.name}
+              colSpan={3}>
+              {`Current state ${c.name}`}{setConfig && config.length > 1 &&
+                <span className="close-icon" onClick={() => deleteState(config, idx, setConfig)}>×</span>}
+            </th>)}
           </tr>
           <tr className="instruction-labels">
             {config.map((c) => <React.Fragment key={c.name}><td>Write symbol</td><td>Move tape</td><td>Next state</td></React.Fragment>)}
@@ -74,4 +78,27 @@ function updateConfig(e, config, idx, tapeSymbol, prop, setConfig) {
   copyConfig[tapeSymbol] = copySubConfig;
   copyConfigs[idx] = copyConfig;
   setConfig(copyConfigs);
+}
+
+function deleteState(config, idx, setConfig) {
+  const deletedName = config[idx].name;
+  const copyConfigs = [...config];
+  copyConfigs.splice(idx, 1);
+  for (let i = 0; i < copyConfigs.length; i++) {
+    copyConfigs[i] = deleteReferences(copyConfigs[i], deletedName);
+  }
+  setConfig(copyConfigs);
+}
+
+function deleteReferences(state, deletedName) {
+  if (state[0].next !== deletedName && state[1].next !== deletedName) {
+    return state;
+  }
+  const copied = { ...state };
+  for (let read = 0; read < 2; read++) {
+    if (copied[read].next === deletedName) {
+      copied[read] = { ...copied[read], next: 'HALT' };
+    }
+  }
+  return copied;
 }

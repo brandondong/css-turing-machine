@@ -5,6 +5,7 @@ import ShareableHtmlLink from './ShareableHtmlLink.js';
 import toHTML from './turingMachineConversion.js';
 
 const DEFAULT_STATE_0 = { name: 'A', 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'L', next: 'A' } };
+const DEFAULT_ADD = { 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'L', next: 'HALT' } };
 
 export default function TuringMachineForm() {
   const [numTapeCells, setNumTapeCells] = useState("15");
@@ -43,7 +44,7 @@ function parseInputNum(value) {
 
 function addStateToConfig(config, setConfig) {
   const configCopy = [...config];
-  const nextState = { ...DEFAULT_STATE_0 };
+  const nextState = { ...DEFAULT_ADD };
   nextState.name = nextName(config[config.length - 1].name);
   configCopy.push(nextState);
   setConfig(configCopy);
