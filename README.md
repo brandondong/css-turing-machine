@@ -1,6 +1,8 @@
 # Turing Machine implemented in CSS
 
-Demo (TODO)
+## [Demonstration](#)
+
+Inspired from https://stackoverflow.com/questions/2497146/is-css-turing-complete/ and http://eli.fox-epste.in/rule110-full.html.
 
 ## How does it work?
 

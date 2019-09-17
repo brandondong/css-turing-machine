@@ -5,7 +5,7 @@ import { GITHUB_LINK } from './contants.js';
 /* Only used for ReactDOMServer.renderToStaticMarkup. */
 export default function CompiledMachinePageBody({ config, numTapeCells }) {
   return <>
-    <p>This page implements the below Turing machine without executing any Javascript or making any network requests. <a href={`${GITHUB_LINK}/blob/master/README.md`} target="_blank" rel="noopener noreferrer">How does it work?</a></p>
+    <p>This page implements the below Turing machine without executing any Javascript or making any network requests. <a href={`${GITHUB_LINK}/blob/master/README.md#how-does-it-work`} target="_blank" rel="noopener noreferrer">How does it work?</a></p>
     <div id="machine">
       <StateInputs config={config} numTapeCells={numTapeCells} />
       <LogicLabels config={config} numTapeCells={numTapeCells} />
@@ -68,21 +68,23 @@ function InputUI({ numTapeCells }) {
   let counter = 0;
   for (let n = 0; n < 2; n++) {
     elements.push(<p key={counter++}></p>);
-    for (let i = 0; i < numTapeCells; i++) {
-      elements.push(<span key={counter++}></span>);
-    }
     if (n === 0) {
       for (let i = 0; i < numTapeCells; i++) {
         elements.push(<label htmlFor={`t0_${i}`} key={counter++}></label>);
       }
+    } else {
+      for (let i = 0; i < numTapeCells; i++) {
+        elements.push(<span key={counter++}></span>);
+      }
     }
     elements.push(<br key={counter++} />);
-    for (let i = 0; i < numTapeCells; i++) {
-      elements.push(<span key={counter++}></span>);
-    }
     if (n === 0) {
       for (let i = 0; i < numTapeCells; i++) {
         elements.push(<label htmlFor={`t0_${i}`} key={counter++}></label>);
+      }
+    } else {
+      for (let i = 0; i < numTapeCells; i++) {
+        elements.push(<span key={counter++}></span>);
       }
     }
   }
