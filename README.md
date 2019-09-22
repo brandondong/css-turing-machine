@@ -10,51 +10,71 @@ Inspired from https://stackoverflow.com/questions/2497146/is-css-turing-complete
 
 At any point during a Turing machine's execution, it must track the list of tape symbols, the head position, and the current state it's in. If we want to emulate one, we need to store this information somewhere in the DOM. HTML inputs, specifically checkbox and radio buttons, are a nice way of storing this data as their toggled states can be accessed easily in CSS through the [:checked](https://developer.mozilla.org/en-US/docs/Web/CSS/:checked) pseudo-class selector.
 
-The list of binary tape symbols naturally translates into a list of checkboxes. The head position and the current Turing machine state are both values from a set of possibilites and therefore can be simply represented as a single selection within a [radio button group](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#Defining_a_radio_group).
+The list of binary tape symbols naturally translates into a list of checkboxes. The head position and the current Turing machine state are both values from a set of possibilites and therefore can each be represented as a single selection within a [radio button group](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#Defining_a_radio_group).
 
 ### Stepping through the program
 
 Executing a program requires the ability to write to memory or in our case, to toggle inputs. This cannot be done automatically through CSS; a user must perform a mouse click for each individual toggle. In order to ensure that the user does not perform any computation, the program should be executed in a way such that all mouse clicks are done on a stationary spot.
 
-This thought process naturally points to stacking all the inputs on top of each other. We choose to stack HTML labels with the [for](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label#Attributes) attribute instead. Since clicking a label will toggle its associated input, this approach allows for greater flexibility in the positioning of elements throughout the DOM and labels can be more easily restyled to look like buttons.
+Besides clicking directly on an input, toggling can also be achieved by clicking on its associated [label](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label). We will create a label for each input and stack them all directly over another with absolute positioning such that only one is ever visible at a time.
 
-The plan of attack is to have a label for each input and to stack all the labels (which we've restyled to look like buttons) on top of each other such that there appears to be only one button that the user must continually press. We then must intelligently apply `display: none;` to the apppropriate labels such that we control which label the user is actually toggling, thereby writing to the desired parts of memory.
+The plan of attack will be as follows:
+1. Given the current checked and unchecked inputs, we should compute the next steps required such as writing to the tape, moving the head, and transitioning to the next state. Each of these steps are equivalent to just toggling specific inputs.
+2. For inputs that need to be toggled, their associated labels should be made visible. Otherwise, they should be hidden.
+3. Then, when the user clicks on the stack of labels, a correct action will be performed.
+4. This click will update the toggled state of one of the inputs. With our updated set of checked and unchecked inputs, the entire process will repeat.
 
 ### Controlling the visibility of labels
 
-CSS allows the conditional application of styles through [selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors). The ones that we are heavily leveraging are the earlier mentioned [:checked](https://developer.mozilla.org/en-US/docs/Web/CSS/:checked) pseudo-class selector, the [:not()](https://developer.mozilla.org/en-US/docs/Web/CSS/:not) pseudo-class, the [adjacent sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/Adjacent_sibling_combinator), and the the [general sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator).
+CSS allows the conditional application of styles through [selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors). To implement our Turing machine logic, we will heavily leverage the earlier mentioned [:checked](https://developer.mozilla.org/en-US/docs/Web/CSS/:checked) pseudo-class selector, the [:not()](https://developer.mozilla.org/en-US/docs/Web/CSS/:not) pseudo-class, the [adjacent sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/Adjacent_sibling_combinator), and the [general sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator).
 
 From here on out, we will assume labels are hidden by default with `label { display: none; }` as this will make later derivations much easier.
 
-As a simple example, say we have two checkboxes followed by a label and we want to show the label if and only if both checkboxes are checked. This can be accomplished with:
+As a simple example, say we have two checkboxes followed by a label and we want to show the label if and only if both checkboxes are checked.
+```html
+<input type="checkbox">
+<input type="checkbox">
+<label>Example</label>
+```
+This can be accomplished with:
 ```css
-input:checked + input:checked + label {
+:checked + :checked + * {
   display: inline;
 }
 ```
 If we think of the two checkbox toggle states as booleans, the adjacent sibling combinator allows us to perform a logical AND. For a more complicated example, say we need the label to be shown if and only if exactly one of the checkboxes is checked. This can be done with:
 ```css
-input:checked + input:not(:checked) + label {
+:checked + :not(:checked) + * {
   display: inline;
 }
 
-input:not(:checked) + input:checked + label {
+:not(:checked) + :checked + * {
   display: inline;
 }
 ```
-From this example, we can see that using multiple CSS rules allows us to perform a logical OR.
+From this example, we can see that using multiple CSS rules (or alternatively, the comma combinator) allows us to perform a logical OR.
 
-Finally, consider an example where we have five radio buttons in a radio group followed by five checkboxes before the label. If the i<sup>th</sup> radio button is the one that is selected and the i<sup>th</sup> checkbox also happens to be checked, then the label must be shown. Otherwise, it should be hidden. We could implement this with our previous methods using five CSS rules but with the general sibling combinator, we can shorten this to just one:
+Finally, consider an example where we have a checkbox followed by three radio buttons in a radio group followed by a set of three labels.
+```html
+<input type="checkbox">
+<input type="radio" name="a">
+<input type="radio" name="a">
+<input type="radio" name="a">
+<label>1</label>
+<label>2</label>
+<label>3</label>
+```
+If the first checkbox is not checked, no label should be shown. Otherwise, if the i<sup>th</sup> radio button is the one that is selected, then only the i<sup>th</sup> label should be shown. We could implement this with our previous methods using three CSS rules but with the general sibling combinator, we can shorten this to just one:
 ```css
-input:checked + input + input + input + input + input:checked ~ label {
+:checked ~ :checked + * + * + * {
   display: inline;
 }
 ```
-If the checkboxes are thought of as a boolean array and the selected radio button as a corresponding index, then we have just implemented an array lookup. This will be useful as we want the number of CSS rules we generate to not scale with the size of the tape as we are trying to emulate a theoretical Turing machine that can handle infinite memory.
+As we will see more later on, the general sibling combinator allows us to perform operations on arrays without having to specify rules for each index. This will be useful as we want the number of CSS rules we generate to not scale with the size of the tape as we are trying to emulate a theoretical Turing machine that can handle infinite memory.
 
 ### Computing a single iteration
 
-To simplify, let us first consider what would have to be done to compute a single iteration of a Turing machine. That is, given a list of tape symbols, the head position, and the current Turing machine state, we compute the subsequent list of tape symbols, head position, and Turing machine state. Let us assume the DOM is organized as follows:
+To simplify, let us first consider what would have to be done to compute a single iteration of a Turing machine. That is, given a list of tape symbols, the head position, and the current Turing machine state, we compute the subsequent aforementioned properties. Let us assume the DOM is organized as follows:
 ```html
 <!-- All inputs are invisible so the user cannot toggle them manually. -->
 
@@ -76,7 +96,8 @@ To simplify, let us first consider what would have to be done to compute a singl
 <!-- Next tape. -->
 <input type="checkbox" id="t1_0"><input type="checkbox" id="t1_1">
 
-<!-- Labels controlling the entire second half of inputs, stacked on top of each other using absolute positioning. -->
+<!-- Labels for each input, stacked on top of each other using absolute positioning. -->
+<label for="s0_0"></label><label for="s0_1"></label><label for="h0_0"></label><label for="h0_1"></label><label for="t0_0"></label><label for="t0_1"></label>
 <label for="s1_0"></label><label for="s1_1"></label><label for="h1_0"></label><label for="h1_1"></label><label for="t1_0"></label><label for="t1_1"></label>
 ```
 Notice that we have to store the destination state separately. We cannot update our data in place as we may overwrite old inputs that are still needed part way through into the computation.
@@ -155,27 +176,25 @@ def shouldShowToggle(tapeCellIdx):
 ```
 This fits the format described earlier with multiple clauses made up of logical AND's joined by logical OR's. Each line can therefore be represented by a single CSS rule. If tapeCellIdx equals zero, the first line could be translated to:
 ```css
-                                                    /* Some statically known offset to the label for #t1_0. */
-#h0_0:not(:checked) ~ #t0_0:checked ~ #t1_0::not(:checked) + * + * + * + label {
+#h0_0:not(:checked) ~ #t0_0:checked ~ #t1_0:not(:checked) ~ [for=t1_0] {
   display: inline;
 }
 ```
 This will work but will require a separate rule for each tape cell which we don't want. Notice that regardless of what the value of tapeCellIdx is, the distance between the elements we're identifying by id's are always the same as well as the distance to the matching label. Therefore, we can use just one rule for all tape cells:
 ```css
-/* Statically known offsets between each. */
-[name=h0]:not(:checked) + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
+[name=h0]:not(:checked) + * + :checked + * + * + * + :not(:checked) + * + * + * + * + * + * + * + * + * + * + * + * {
   display: inline;
 }
 ```
 The third line in our function can be handled similarly. First, when tapeCellIdx is equal to zero and assuming the known value of stateTable[0][1].write is equal to one:
 ```css
-#s0_0:checked ~ #h0_0:checked ~ #t0_0:checked ~ #t1_0:not(:checked) + * + * + * + label {
+#s0_0:checked ~ #h0_0:checked ~ #t0_0:checked ~ #t1_0:not(:checked) ~ [for=t1_0] {
   display: inline;
 }
 ```
 When generalized, we can again just create one rule for all tape cells:
 ```css
-#s0_0:checked ~ [name=h0]:checked + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
+#s0_0:checked ~ [name=h0]:checked + * + :checked + * + * + * + :not(:checked) + * + * + * + * + * + * + * + * + * + * + * + * {
   display: inline;
 }
 ```
@@ -239,20 +258,19 @@ def shouldShowRadioLabel(headPositionIdx):
     (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].move == 'L' and currentHeadPos + 1 == headPositionIdx and not destHeadPos[headPositionIdx]) or
     (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].move == 'R' and currentHeadPos - 1 == headPositionIdx and not destHeadPos[headPositionIdx]) # ...
 ```
-The first line, assuming headPositionIdx is equal to three and stateTable[0][1].move == 'L', can be expressed in CSS as:
+The first line, assuming headPositionIdx is equal to one and stateTable[0][1].move == 'L', can be expressed in CSS as:
 ```css
-             /* currentHeadPos */                /* currentTape[currentHeadPos] */
-#s0_0:checked ~ input:checked + #h0_3 + * + * + * + input:checked ~ #h1_3:not(:checked) + * + * + * + label {
+#s0_0:checked ~ #h0_0:checked ~ #t0_0:checked ~ #h1_1:not(:checked) ~ [for=h1_1] {
   display: inline;
 }
 ```
 Generalized to:
 ```css
-                                                  /* Statically known offset relative to currentHeadPos + 1 */
-#s0_0:checked ~ input:checked + * + * + * + input:checked + * + * + * + input:not(:checked) + * + * + * + label {
+#s0_0:checked ~ [name=h0]:checked + [name=h0] + :checked + * + * + :not(:checked) + * + * + * + * + * + * + * + * + * + * + * + * {
   display: inline;
 }
 ```
+The second `[name=h0]` acts as a sort of bounds checking to avoid unplanned memory writes when trying to move off the edge of the tape.
 
 ### Computing the next state
 
@@ -295,25 +313,58 @@ def shouldShowRadioLabel(stateIdx):
   return (currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].next == stateIdx and not destStates[stateIdx]) or
     (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].next == stateIdx and not destStates[stateIdx]) # ...
 ```
-Assuming stateIdx, stateTable[0][1].next, and stateTable[0][0].next are equal to three, the first line can be expressed as:
+Assuming stateIdx and stateTable[0][1].next are equal to one, the first line can be expressed as:
 ```css
-#s0_0:checked ~ [name=h0]:checked + * + *:checked ~ #s1_3:not(:checked) ~ [for=s1_3] {
-  display: inline;
-}
-```
-And the second as:
-```css
-#s0_0:checked ~ [name=h0]:checked + * + *:not(:checked) ~ #s1_3:not(:checked) ~ [for=s1_3] {
+#s0_0:checked ~ #s1_1:not(:checked) ~ [name=h0]:checked + * + :checked ~ [for=s1_1] {
   display: inline;
 }
 ```
 
 ### Generalizing to many iterations
 
-There can be a possibly infinite number of Turing machine iterations so we cannot just create more destination inputs to scale up. The key is that we only ever need to keep track of the current inputs and the inputs currently being written to. Once an iteration is done, we can just swap so that the inputs we've just written to are now the current inputs we are computing from.
+There can be a possibly infinite number of Turing machine iterations so we cannot just create more destination inputs to scale up. The key is that we only ever need to keep track of the current inputs and the inputs currently being written to. Once an iteration is done, we can just swap the two so that the inputs we've just written to are now the current inputs we are computing from.
 
-Information about which set of inputs is which will have to be stored in another boolean input that can be toggled. The tricky thing here is that computing the visibility of the associated label in this case would be tremendously complex as it can only be toggled after an iteration is fully complete or if we know that all other labels are invisible. Instead, we can just make the label always visible but place it under all the other labels so that it is guaranteed to be toggled last.
+Information about which set of inputs is which will have to be stored in another boolean checkbox input along with an associated label. The tricky thing here is that computing the visibility of the label in this case would be tremendously complex as it can only be toggled after an iteration is fully complete or if we know that all other labels are invisible. Instead, we can just make the label always visible but place it under all the other labels so that it is guaranteed to be toggled last.
+```html
+<!-- Indicates which set of inputs we are deriving from. -->
+<input type="checkbox" id="f">
+
+<input type="radio" name="s0" id="s0_0"><input type="radio" name="s0" id="s0_1">
+
+<input type="radio" name="s1" id="s1_0"><input type="radio" name="s1" id="s1_1">
+
+<input type="radio" name="h0" id="h0_0"><input type="radio" name="h0" id="h0_1">
+
+<input type="checkbox" id="t0_0"><input type="checkbox" id="t0_1">
+
+<input type="radio" name="h1" id="h1_0"><input type="radio" name="h1" id="h1_1">
+
+<input type="checkbox" id="t1_0"><input type="checkbox" id="t1_1">
+
+<!-- Labels for each input, stacked on top of each other using absolute positioning. -->
+<label for="f"></label>
+<label for="s0_0"></label><label for="s0_1"></label><label for="h0_0"></label><label for="h0_1"></label><label for="t0_0"></label><label for="t0_1"></label>
+<label for="s1_0"></label><label for="s1_1"></label><label for="h1_0"></label><label for="h1_1"></label><label for="t1_0"></label><label for="t1_1"></label>
+```
+All of our previous CSS rules will need to be adapted for both cases. For example, the previous rule for helping compute the next state becomes:
+```css
+#f:not(:checked) ~ #s0_0:checked ~ #s1_1:not(:checked) ~ [name=h0]:checked + * + :checked ~ [for=s1_1] {
+  display: inline;
+}
+
+#f:checked ~ #s0_1:not(:checked) ~ #s1_0:checked ~ [name=h1]:checked + * + :checked ~ [for=s0_1] {
+  display: inline;
+}
+```
 
 ### Halting
 
-The halting state does not need to be treated any differently than the other states in the case of input and label representation. To stop the cycle of iterations, we can hide the bottommost iteration toggle label if the new state is the halting state. Then, once the user finishes updating the inputs for the current iteration, there will be no way to continue and the inputs will reflect the final results.
+The halting state does not need to be treated any differently than the other states in the case of input and label representation. To stop the cycle of iterations, we can show the bottommost iteration toggle label only if the current state is not the halting state.
+
+Assuming `#s0_1` and `#s1_1` represent the halting state, this looks like:
+```css
+#s0_1:not(:checked) ~ #s1_1:not(:checked) ~ [for=f] {
+  display:inline;
+}
+```
+Then, once the user finishes updating the inputs for the current iteration and the resulting state happens to be the halting state, there will be no way to continue and the inputs will reflect the final results.

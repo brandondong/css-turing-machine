@@ -27,7 +27,7 @@ function addHeadPosStyling(sb, config, numTapeCells) {
     const state = config[i];
     for (let read = 0; read < 2; read++) {
       const dir = state[read].move;
-      sb.push('#s:checked~#f:not(:checked)~');
+      sb.push(`#s:checked~#f:not(:checked)~#s0_${i}:checked~`);
       if (dir === 'L') {
         sb.push('[name=h0]:checked+[name=h0]');
         sb.push('+*'.repeat(numTapeCells - 2));
@@ -54,7 +54,7 @@ function addHeadPosStyling(sb, config, numTapeCells) {
     const state = config[i];
     for (let read = 0; read < 2; read++) {
       const dir = state[read].move;
-      sb.push('#f:checked~:not(:checked)');
+      sb.push(`#f:checked~#s0_${i}:checked~:not(:checked)`);
       if (dir === 'L') {
         sb.push('+*'.repeat(2 * numTapeCells - 2));
         sb.push('+[name=h1]:checked+[name=h1]');
