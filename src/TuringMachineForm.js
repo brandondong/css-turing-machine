@@ -13,18 +13,37 @@ export default function TuringMachineForm() {
   const [generatedHTML, setGeneratedHTML] = useState(null);
 
   const parsedNumTapeCells = parseInputNum(numTapeCells);
+
+  function addNewState() {
+    const configCopy = [...config];
+    const nextState = { ...DEFAULT_ADD };
+    nextState.name = nextName(config[config.length - 1].name);
+    configCopy.push(nextState);
+    updateConfig(configCopy);
+  }
+
+  function updateConfig(config) {
+    setConfig(config);
+    setGeneratedHTML(null);
+  }
+
+  function updateNumTapeCells(value) {
+    setNumTapeCells(value);
+    setGeneratedHTML(null);
+  }
+
   return (
     <>
-      <TuringMachineStateTable config={config} setConfig={setConfig} />
+      <TuringMachineStateTable config={config} setConfig={updateConfig} />
       <div className="addButton">
-        <button onClick={() => addStateToConfig(config, setConfig)}>Add State</button>
+        <button onClick={addNewState}>Add State</button>
       </div>
       <label className="tape-cell-label">Number of tape cells: <input className="tape-cell-input"
         type="number"
         name="quantity"
         min="1"
         value={numTapeCells}
-        onChange={e => setNumTapeCells(e.target.value)} />
+        onChange={e => updateNumTapeCells(e.target.value)} />
       </label>
       <div className="bottom-spacing">
         <button onClick={() => setGeneratedHTML(toHTML(config, parsedNumTapeCells))}>Compile</button>
@@ -40,14 +59,6 @@ function parseInputNum(value) {
     return 1;
   }
   return result;
-}
-
-function addStateToConfig(config, setConfig) {
-  const configCopy = [...config];
-  const nextState = { ...DEFAULT_ADD };
-  nextState.name = nextName(config[config.length - 1].name);
-  configCopy.push(nextState);
-  setConfig(configCopy);
 }
 
 function nextName(name) {

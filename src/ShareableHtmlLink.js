@@ -5,7 +5,7 @@ export default function ShareableHtmlLink({ html }) {
     return null;
   }
   const dataUrl = toDataURL(html);
-  return <ShareableLink key={dataUrl} url={dataUrl} />
+  return <ShareableLink url={dataUrl} />
 }
 
 function ShareableLink({ url }) {
