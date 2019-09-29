@@ -54,13 +54,13 @@ function addHeadPosStyling(sb, config, numTapeCells) {
     const state = config[i];
     for (let read = 0; read < 2; read++) {
       const dir = state[read].move;
-      sb.push(`#f:checked~#s0_${i}:checked~:not(:checked)`);
+      sb.push(`#f:checked~#s1_${i}:checked~:not(:checked)`);
       if (dir === 'L') {
         sb.push('+*'.repeat(2 * numTapeCells - 2));
         sb.push('+[name=h1]:checked+[name=h1]');
         sb.push('+*'.repeat(numTapeCells - 2));
       } else {
-        sb.push('+*'.repeat(2 * numTapeCells));
+        sb.push('+*'.repeat(2 * numTapeCells - 1));
         sb.push('+[name=h1]+[name=h1]:checked');
         sb.push('+*'.repeat(numTapeCells - 1));
       }
