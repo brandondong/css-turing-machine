@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/css-turing-machine/static/css/main.6db96a78.chunk.css",
+    "main.js": "/css-turing-machine/static/js/main.6533b071.chunk.js",
+    "main.js.map": "/css-turing-machine/static/js/main.6533b071.chunk.js.map",
+    "runtime~main.js": "/css-turing-machine/static/js/runtime~main.4a158c2c.js",
+    "runtime~main.js.map": "/css-turing-machine/static/js/runtime~main.4a158c2c.js.map",
+    "static/js/2.6bb3aafc.chunk.js": "/css-turing-machine/static/js/2.6bb3aafc.chunk.js",
+    "static/js/2.6bb3aafc.chunk.js.map": "/css-turing-machine/static/js/2.6bb3aafc.chunk.js.map",
+    "index.html": "/css-turing-machine/index.html",
+    "precache-manifest.5f9e604eddd06ff1d958a073844d2769.js": "/css-turing-machine/precache-manifest.5f9e604eddd06ff1d958a073844d2769.js",
+    "service-worker.js": "/css-turing-machine/service-worker.js",
+    "static/css/main.6db96a78.chunk.css.map": "/css-turing-machine/static/css/main.6db96a78.chunk.css.map"
+  }
+}
