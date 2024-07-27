@@ -1,8 +1,25 @@
 # Turing Machine implemented in CSS
 
-## [Demonstration](https://brandondong.github.io/css-turing-machine/)
+## Demo
 
-Inspired from https://stackoverflow.com/questions/2497146/is-css-turing-complete/ and http://eli.fox-epste.in/rule110-full.html.
+https://brandondong.github.io/css-turing-machine/
+
+### Running locally
+
+Install dependencies:
+```
+npm install
+```
+
+Run app:
+```
+npm run dev
+```
+
+### Inspiration
+
+* https://stackoverflow.com/questions/2497146/
+* http://eli.fox-epste.in/rule110-full.html
 
 ## How does it work?
 

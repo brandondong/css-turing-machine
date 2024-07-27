@@ -1,0 +1,16 @@
+.app-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 1000px;
+  margin-inline: auto;
+}
+
+.app-content {
+  flex: 1;
+  padding-top: 18px;
+}
+
+.footer {
+  padding-bottom: 40px;
+}

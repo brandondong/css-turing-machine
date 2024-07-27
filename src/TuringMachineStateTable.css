@@ -11,14 +11,16 @@
   font-size: 14px;
   color: #222;
   line-height: 1.6;
+  text-wrap: nowrap;
 }
 
-.statetable > tbody > tr > th, .statetable > tbody > tr > td {
+.statetable>tbody>tr>th,
+.statetable>tbody>tr>td {
   border: 1px solid #a2a9b1;
   padding: 0.2em 0.4em;
 }
 
-.statetable > tbody > tr > th {
+.statetable>tbody>tr>th {
   background-color: #eaecf0;
   position: relative;
   background-clip: padding-box;

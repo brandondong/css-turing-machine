@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './TuringMachineForm.css';
-import TuringMachineStateTable from './TuringMachineStateTable.js'
-import ShareableHtmlLink from './ShareableHtmlLink.js';
-import toHTML from './turingMachineConversion.js';
+import TuringMachineStateTable from './TuringMachineStateTable.jsx'
+import ShareableHtmlLink from './ShareableHtmlLink.jsx';
+import toHTML from './turingMachineConversion.jsx';
 
 const DEFAULT_STATE_0 = { name: 'A', 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'L', next: 'A' } };
 const DEFAULT_ADD = { 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'L', next: 'HALT' } };

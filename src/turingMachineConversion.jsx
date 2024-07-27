@@ -1,7 +1,10 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
-import CompiledMachinePageBody from './CompiledMachinePageBody.js';
-import StaticCSS from './conversionStaticCSS.js';
+import CompiledMachinePageBody from './CompiledMachinePageBody.jsx';
+import indexCSS from './index.css?inline';
+import appLayoutCSS from './AppLayout.css?inline';
+import turingMachineStateTableCSS from './TuringMachineStateTable.css?inline';
+import conversionCSS from './conversion.css?inline';
 
 export default function toHTML(config, numTapeCells) {
   // Refer to the project's README for a detailed description of how this is supposed to work.
@@ -288,6 +291,9 @@ function addCompiledMachinePageBody(sb, config, numTapeCells) {
 }
 
 function addPageStyling(sb) {
-  sb.push(StaticCSS);
+  sb.push(indexCSS);
+  sb.push(appLayoutCSS);
+  sb.push(turingMachineStateTableCSS);
+  sb.push(conversionCSS);
   sb.push('\n');
 }

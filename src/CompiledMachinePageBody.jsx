@@ -1,20 +1,24 @@
 import React from 'react';
-import TuringMachineStateTable from './TuringMachineStateTable.js';
+import AppLayout from './AppLayout.jsx';
+import TuringMachineStateTable from './TuringMachineStateTable.jsx';
 import { GITHUB_LINK } from './contants.js';
 
 /* Only used for ReactDOMServer.renderToStaticMarkup. */
 export default function CompiledMachinePageBody({ config, numTapeCells }) {
-  return <>
-    <p>This page implements the below Turing machine without executing any Javascript or making any network requests. <a href={`${GITHUB_LINK}/blob/master/README.md#how-does-it-work`} target="_blank" rel="noopener noreferrer">How does it work?</a></p>
-    <div id="machine">
-      <StateInputs config={config} numTapeCells={numTapeCells} />
-      <LogicLabels config={config} numTapeCells={numTapeCells} />
-      <InputUI numTapeCells={numTapeCells} />
-    </div>
-    <hr />
-    <h3>Reference:</h3>
-    <TuringMachineStateTable config={config} />
-  </>;
+  return <AppLayout
+    main={
+      <>
+        <h3>Reference:</h3>
+        <TuringMachineStateTable config={config} />
+        <div id="machine">
+          <StateInputs config={config} numTapeCells={numTapeCells} />
+          <LogicLabels config={config} numTapeCells={numTapeCells} />
+          <InputUI numTapeCells={numTapeCells} />
+        </div>
+      </>
+    }
+    footer={<>This page implements the specified Turing machine without executing any Javascript or making any network requests. <a href={`${GITHUB_LINK}/blob/master/README.md#how-does-it-work`} target="_blank" rel="noopener noreferrer">How does it work?</a></>}
+  />
 }
 
 function StateInputs({ config, numTapeCells }) {
