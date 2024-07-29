@@ -1,4 +1,4 @@
-# Turing Machine implemented in CSS
+# Turing machines implemented in CSS
 
 ## Demo
 
@@ -25,363 +25,364 @@ npm run dev
 
 ### Maintaining program state
 
-At any point during a Turing machine's execution, it must track the list of tape symbols, the head position, and the current state it's in. If we want to emulate one, we need to store this information somewhere in the DOM. HTML inputs, specifically checkbox and radio buttons, are a nice way of storing this data as their toggled states can be accessed easily in CSS through the [:checked](https://developer.mozilla.org/en-US/docs/Web/CSS/:checked) pseudo-class selector.
+At any point during a Turing machine's execution, it must track the list of tape symbols, the head position, and the current state it's in. In order to emulate one, we need to store this information somewhere in the DOM. HTML inputs, specifically checkbox and radio buttons, fit this usecase nicely:
+1. They can encode information through being checked or unchecked.
+1. This checked/unchecked state is accessible in CSS through the [:checked](https://developer.mozilla.org/en-US/docs/Web/CSS/:checked) pseudo-class selector.
 
-The list of binary tape symbols naturally translates into a list of checkboxes. The head position and the current Turing machine state are both values from a set of possibilites and therefore can each be represented as a single selection within a [radio button group](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#Defining_a_radio_group).
-
-### Stepping through the program
+### Updating program state
 
 Executing a program requires the ability to write to memory or in our case, to toggle inputs. This cannot be done automatically through CSS; a user must perform a mouse click for each individual toggle. In order to ensure that the user does not perform any computation, the program should be executed in a way such that all mouse clicks are done on a stationary spot.
 
-Besides clicking directly on an input, toggling can also be achieved by clicking on its associated [label](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label). We will create a label for each input and stack them all directly over another with absolute positioning such that only one is ever visible at a time.
+Besides clicking directly on an input, toggling can also be achieved by clicking on its associated [label](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label):
+```html
+<input id="option-1" type="checkbox">
+<label for="option-1">Option 1</label> <!-- Clicking on this label will toggle the checkbox. -->
+```
 
-The plan of attack will be as follows:
-1. Given the current checked and unchecked inputs, we should compute the next steps required such as writing to the tape, moving the head, and transitioning to the next state. Each of these steps are equivalent to just toggling specific inputs.
+We will create a label for each input and stack them all directly over another with absolute positioning such that only one is ever visible at a time.
+
+The plan of attack is as follows:
+1. Given the current checked and unchecked inputs, we should compute the next steps required such as writing to the tape, moving the head, and transitioning to the next state. Each of these steps is equivalent to toggling specific inputs.
 2. For inputs that need to be toggled, their associated labels should be made visible. Otherwise, they should be hidden.
 3. Then, when the user clicks on the stack of labels, a correct action will be performed.
 4. This click will update the toggled state of one of the inputs. With our updated set of checked and unchecked inputs, the entire process will repeat.
 
 ### Controlling the visibility of labels
 
-CSS allows the conditional application of styles through [selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors). To implement our Turing machine logic, we will heavily leverage the earlier mentioned [:checked](https://developer.mozilla.org/en-US/docs/Web/CSS/:checked) pseudo-class selector, the [:not()](https://developer.mozilla.org/en-US/docs/Web/CSS/:not) pseudo-class, the [adjacent sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/Adjacent_sibling_combinator), and the [general sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/General_sibling_combinator).
+CSS allows the conditional application of styles through [selectors](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_selectors). To implement our Turing machine logic, we will need to leverage two: the [next-sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/Next-sibling_combinator) (`+`), and the [subsequent-sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/Subsequent-sibling_combinator) (`~`).
 
-From here on out, we will assume labels are hidden by default with `label { display: none; }` as this will make later derivations much easier.
+Say we want to make a label visible only if the input _immediately_ before it is checked:
+```html
+<input type="checkbox">
+<label>Example</label>
+```
 
-As a simple example, say we have two checkboxes followed by a label and we want to show the label if and only if both checkboxes are checked.
+This is possible using the aforementioned [next-sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/Next-sibling_combinator) (`+`):
+```css
+input:checked + label {
+  visibility: visible;
+}
+```
+
+The next-sibling combinator composes with itself. Suppose we now have two checkboxes followed by a label and we want to show the label only if both inputs are checked:
 ```html
 <input type="checkbox">
 <input type="checkbox">
 <label>Example</label>
 ```
+
 This can be accomplished with:
 ```css
-:checked + :checked + * {
-  display: inline;
+input:checked + input:checked + label {
+  visibility: visible;
 }
 ```
-If we think of the two checkbox toggle states as booleans, the adjacent sibling combinator allows us to perform a logical AND. For a more complicated example, say we need the label to be shown if and only if exactly one of the checkboxes is checked. This can be done with:
+
+If we think of the two input checked states as booleans, the specified selector behaves like a logical AND. To perform a logical OR instead (show the label only if either input is checked), two separate selectors can be used:
 ```css
-:checked + :not(:checked) + * {
-  display: inline;
+input:checked + input + label {
+  visibility: visible;
 }
 
-:not(:checked) + :checked + * {
-  display: inline;
+input + input:checked + label {
+  visibility: visible;
 }
 ```
-From this example, we can see that using multiple CSS rules (or alternatively, the comma combinator) allows us to perform a logical OR.
 
-Finally, consider an example where we have a checkbox followed by three radio buttons in a radio group followed by a set of three labels.
+In our actual Turing machine implementation, the number of tape cells can be freely chosen by the user and thus can be made arbitrarily large (we are trying to emulate a theoretical Turing machine with an infinitely long tape). It's very important that the number of selectors does not scale with the tape size chosen. The generated CSS should remain _100% identical_ regardless of the number of tape cells.
+
+This can be done by strategically positioning inputs and labels in the DOM:
 ```html
-<input type="checkbox">
-<input type="radio" name="a">
-<input type="radio" name="a">
-<input type="radio" name="a">
-<label>1</label>
-<label>2</label>
-<label>3</label>
+<!-- Task: Show the label to toggle a tape cell if the cell value is 1 OR the tape head is at that cell. -->
+
+<input id="tape-cell-1" type="checkbox"> <!-- Checked if the first tape cell has value 1, unchecked otherwise. -->
+<input id="head-position-1" type="radio" name="head-position"> <!-- Checked if the tape head is at the first cell, unchecked otherwise. -->
+<label for="tape-cell-1">Toggle tape cell 1</label>
+
+<input id="tape-cell-2" type="checkbox">
+<input id="head-position-2" type="radio" name="head-position">
+<label for="tape-cell-2">Toggle tape cell 2</label>
+
+<input id="tape-cell-3" type="checkbox">
+<input id="head-position-3" type="radio" name="head-position">
+<label for="tape-cell-3">Toggle tape cell 3</label>
+
+<!-- And so on down the tape... -->
 ```
-If the first checkbox is not checked, no label should be shown. Otherwise, if the i<sup>th</sup> radio button is the one that is selected, then only the i<sup>th</sup> label should be shown. We could implement this with our previous methods using three CSS rules but with the general sibling combinator, we can shorten this to just one:
+
+By laying out the elements in this way, our logical OR selectors fulfill the task above without any further modification:
 ```css
-:checked ~ :checked + * + * + * {
-  display: inline;
+input:checked + input + label {
+  visibility: visible;
+}
+
+input + input:checked + label {
+  visibility: visible;
 }
 ```
-As we will see more later on, the general sibling combinator allows us to perform operations on arrays without having to specify rules for each index. This will be useful as we want the number of CSS rules we generate to not scale with the size of the tape as we are trying to emulate a theoretical Turing machine that can handle infinite memory.
+
+In addition to the arbitrarily large set of tape cells, we have to track which of the finite set of states the Turing machine is in.
+```html
+<!-- Example: Turing machine with two possible states. -->
+<input id="state-1" type="radio" name="state">
+<input id="state-2" type="radio" name="state">
+
+<!-- Task: Show the label to toggle a tape cell if the cell value is 1 OR the tape head is at that cell. -->
+<!-- Additionally, only do this if we're in state 1. -->
+
+<input id="tape-cell-1" type="checkbox">
+<input id="head-position-1" type="radio" name="head-position">
+<label for="tape-cell-1">Toggle tape cell 1</label>
+
+<input id="tape-cell-2" type="checkbox">
+<input id="head-position-2" type="radio" name="head-position">
+<label for="tape-cell-2">Toggle tape cell 2</label>
+
+<input id="tape-cell-3" type="checkbox">
+<input id="head-position-3" type="radio" name="head-position">
+<label for="tape-cell-3">Toggle tape cell 3</label>
+
+<!-- And so on down the tape... -->
+```
+
+The next-sibling combinator is insufficient for the task above because each label is a different number of elements away from `#state-1`. This is why we need the [subsequent-sibling combinator](https://developer.mozilla.org/en-US/docs/Web/CSS/Subsequent-sibling_combinator) (`~`).
+
+The following CSS will accomplish the task:
+```css
+input#state-1:checked ~ input:checked + input + label {
+  visibility: visible;
+}
+
+input#state-1:checked ~ input + input:checked + label {
+  visibility: visible;
+}
+```
+
+With these tools, we now have everything needed to implement a Turing machine to CSS compiler.
 
 ### Computing a single iteration
 
-To simplify, let us first consider what would have to be done to compute a single iteration of a Turing machine. That is, given a list of tape symbols, the head position, and the current Turing machine state, we compute the subsequent aforementioned properties. Let us assume the DOM is organized as follows:
+To simplify, let us first consider what would have to be done to compute a single step of a Turing machine. That is, given a list of tape symbols, the head position, and the current Turing machine state, we compute the aforementioned properties after an iteration is passed. Imagine the DOM is organized as follows:
 ```html
-<!-- All inputs are invisible so the user cannot toggle them manually. -->
+<!-- Example: Turing machine with two possible states. -->
+<!-- Current state: -->
+<input id="state-1" type="radio" name="state">
+<input id="state-2" type="radio" name="state">
+<!-- Destination state: -->
+<input id="state-1-next" type="radio" name="state-next">
+<input id="state-2-next" type="radio" name="state-next">
 
-<!-- Current state. -->
-<input type="radio" name="s0" id="s0_0"><input type="radio" name="s0" id="s0_1">
+<!-- Current first tape cell: -->
+<input id="head-position-1" type="radio" name="head-position">
+<input id="tape-cell-1" type="checkbox">
+<!-- Destination first tape cell: -->
+<input id="head-position-1-next" type="radio" name="head-position-next">
+<input id="tape-cell-1-next" type="checkbox">
+<!-- Labels to update the destination tape cell: -->
+<label></label>
+<label for="tape-cell-1-next">Toggle tape cell 1 next</label>
 
-<!-- Next state. -->
-<input type="radio" name="s1" id="s1_0"><input type="radio" name="s1" id="s1_1">
+<!-- Current second tape cell: -->
+<input id="head-position-2" type="radio" name="head-position">
+<input id="tape-cell-2" type="checkbox">
+<!-- Destination second tape cell: -->
+<input id="head-position-2-next" type="radio" name="head-position-next">
+<input id="tape-cell-2-next" type="checkbox">
+<!-- Labels to update the destination tape cell: -->
+<label for="head-position-1-next">Toggle head position 1 next</label> <!-- head-position-X-next labels are always offset one tape cell down to be able to read the checked state of head-position-X+1/tape-cell-X+1. -->
+<label for="tape-cell-2-next">Toggle tape cell 2 next</label>
 
-<!-- Current head position. -->
-<input type="radio" name="h0" id="h0_0"><input type="radio" name="h0" id="h0_1">
+<!-- And so on down the tape... -->
 
-<!-- Current tape. -->
-<input type="checkbox" id="t0_0"><input type="checkbox" id="t0_1">
-
-<!-- Next head position. -->
-<input type="radio" name="h1" id="h1_0"><input type="radio" name="h1" id="h1_1">
-
-<!-- Next tape. -->
-<input type="checkbox" id="t1_0"><input type="checkbox" id="t1_1">
-
-<!-- Labels for each input, stacked on top of each other using absolute positioning. -->
-<label for="s0_0"></label><label for="s0_1"></label><label for="h0_0"></label><label for="h0_1"></label><label for="t0_0"></label><label for="t0_1"></label>
-<label for="s1_0"></label><label for="s1_1"></label><label for="h1_0"></label><label for="h1_1"></label><label for="t1_0"></label><label for="t1_1"></label>
+<!-- Labels to update the destination state: -->
+<label for="state-1-next">Toggle state 1 next</label>
+<label for="state-2-next">Toggle state 2 next</label>
 ```
-Notice that we have to store the destination state separately. We cannot update our data in place as we may overwrite old inputs that are still needed part way through into the computation.
 
-All there is left to do now is to create the CSS rules that will show the correct labels based on the current inputs.
+Notice that we have to store the destination state separately. We cannot update our data in place as we may overwrite old inputs that are still needed partway through into the label visibility computation.
 
 ### Computing the updated tape
 
-Code for computing a single tape cell in a traditional programmming language might look something like:
-```python
-def nextValue(tapeCellIdx):
-  if currentHeadPos != tapeCellIdx:
-    # No way we could change its value this iteration.
-    return currentTape[tapeCellIdx]
-  else:
-    readValue = currentTape[currentHeadPos]
-    writeValue = stateTable[currentState][readValue].write
-    return writeValue
-```
-Our goal is to intelligently control the visibility of labels so that the correct inputs can be toggled. The code may be better rearranged as:
-```python
-def shouldShowToggle(tapeCellIdx):
-  if currentHeadPos != tapeCellIdx:
-    # No way we could change its value this iteration.
-    return currentTape[tapeCellIdx] != destTape[tapeCellIdx]
-  else:
-    readValue = currentTape[currentHeadPos]
-    writeValue = stateTable[currentState][readValue].write
-    return writeValue != destTape[tapeCellIdx]
-```
-This will require some massaging before we can leverage the selectors as described earlier. Firstly, the boolean equality checks can be broken into cases:
-```python
-def shouldShowToggle(tapeCellIdx):
-  if currentHeadPos != tapeCellIdx:
-    # No way we could change its value this iteration.
-    return (currentTape[tapeCellIdx] and not destTape[tapeCellIdx]) or (not currentTape[tapeCellIdx] and destTape[tapeCellIdx])
-  else:
-    readValue = currentTape[currentHeadPos]
-    if readValue:
-      writeValue = stateTable[currentState][1].write
-    else:
-      writeValue = stateTable[currentState][0].write
-    return (writeValue and not destTape[tapeCellIdx]) or (not writeValue and destTape[tapeCellIdx])
-```
-The number of states is always finite so it can also be broken into cases:
-```python
-def shouldShowToggle(tapeCellIdx):
-  if currentHeadPos != tapeCellIdx:
-    # No way we could change its value this iteration.
-    return (currentTape[tapeCellIdx] and not destTape[tapeCellIdx]) or (not currentTape[tapeCellIdx] and destTape[tapeCellIdx])
-  else:
-    readValue = currentTape[currentHeadPos]
-    if currentState == 0:
-      if readValue:
-        # Statically known value!
-        writeValue = stateTable[0][1].write
-      else:
-        writeValue = stateTable[0][0].write
-    elif currentState == 1:
-      if readValue:
-        writeValue = stateTable[1][1].write
-      else:
-        writeValue = stateTable[1][0].write
-    # ...
-    return (writeValue and not destTape[tapeCellIdx]) or (not writeValue and destTape[tapeCellIdx])
-```
-Finally, after some boolean transformations, we get:
-```python
-def shouldShowToggle(tapeCellIdx):
-  return (currentHeadPos != tapeCellIdx and currentTape[tapeCellIdx] and not destTape[tapeCellIdx]) or
-    (currentHeadPos != tapeCellIdx and not currentTape[tapeCellIdx] and destTape[tapeCellIdx]) or
-    (currentHeadPos == tapeCellIdx and currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].write and not destTape[tapeCellIdx]) or
-    (currentHeadPos == tapeCellIdx and currentState == 0 and currentTape[currentHeadPos] and not stateTable[0][1].write and destTape[tapeCellIdx]) or
-    (currentHeadPos == tapeCellIdx and currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].write and not destTape[tapeCellIdx]) or
-    (currentHeadPos == tapeCellIdx and currentState == 0 and not currentTape[currentHeadPos] and not stateTable[0][0].write and destTape[tapeCellIdx]) # ...
-```
-This fits the format described earlier with multiple clauses made up of logical AND's joined by logical OR's. Each line can therefore be represented by a single CSS rule. If tapeCellIdx equals zero, the first line could be translated to:
-```css
-#h0_0:not(:checked) ~ #t0_0:checked ~ #t1_0:not(:checked) ~ [for=t1_0] {
-  display: inline;
+In a traditional programmming language, code for computing a single tape cell might look something like:
+```rust
+fn next_tape_cell_value(
+    tape_cell_idx: usize,
+    current_tape: &[bool],
+    current_head_pos: usize,
+    current_state: usize,
+) -> bool {
+    if tape_cell_idx != current_head_pos {
+        // No way we could change its value this iteration.
+        current_tape[tape_cell_idx]
+    } else {
+        let read_value = current_tape[current_head_pos];
+        let write_value = STATE_TABLE.get_write_value(current_state, read_value);
+        write_value
+    }
 }
 ```
-This will work but will require a separate rule for each tape cell which we don't want. Notice that regardless of what the value of tapeCellIdx is, the distance between the elements we're identifying by id's are always the same as well as the distance to the matching label. Therefore, we can use just one rule for all tape cells:
-```css
-[name=h0]:not(:checked) + * + :checked + * + * + * + :not(:checked) + * + * + * + * + * + * + * + * + * + * + * + * {
-  display: inline;
+
+Our goal is to intelligently control the visibility of labels so that the correct inputs can be toggled. The code may be better expressed as:
+```rust
+fn show_tape_cell_toggle(
+    tape_cell_idx: usize,
+    current_tape: &[bool],
+    dest_tape: &[bool],
+    current_head_pos: usize,
+    current_state: usize,
+) -> bool {
+    if tape_cell_idx != current_head_pos {
+        // No way we could change its value this iteration.
+        current_tape[tape_cell_idx] != dest_tape[tape_cell_idx]
+    } else {
+        let read_value = current_tape[current_head_pos];
+        let write_value = STATE_TABLE.get_write_value(current_state, read_value);
+        write_value != dest_tape[tape_cell_idx]
+    }
 }
 ```
-The third line in our function can be handled similarly. First, when tapeCellIdx is equal to zero and assuming the known value of stateTable[0][1].write is equal to one:
-```css
-#s0_0:checked ~ #h0_0:checked ~ #t0_0:checked ~ #t1_0:not(:checked) ~ [for=t1_0] {
-  display: inline;
+
+Performing some mechanical code transformations:
+```rust
+fn show_tape_cell_toggle(
+    tape_cell_idx: usize,
+    current_tape: &[bool],
+    dest_tape: &[bool],
+    current_head_pos: usize,
+    current_state: usize,
+) -> bool {
+    let read_value = current_tape[current_head_pos];
+    let write_value = STATE_TABLE.get_write_value(current_state, read_value);
+
+    (tape_cell_idx != current_head_pos && current_tape[tape_cell_idx] && !dest_tape[tape_cell_idx]) ||
+    (tape_cell_idx != current_head_pos && !current_tape[tape_cell_idx] && dest_tape[tape_cell_idx]) ||
+    (tape_cell_idx == current_head_pos && write_value && !dest_tape[tape_cell_idx]) ||
+    (tape_cell_idx == current_head_pos && !write_value && dest_tape[tape_cell_idx])
 }
 ```
-When generalized, we can again just create one rule for all tape cells:
+
+The contents of `STATE_TABLE` are statically known during the compilation of the user's specified Turing machine down to CSS. The number of states is also finite and so can be manually enumerated:
+```rust
+fn show_tape_cell_toggle(
+    tape_cell_idx: usize,
+    current_tape: &[bool],
+    dest_tape: &[bool],
+    current_head_pos: usize,
+    current_state: usize,
+) -> bool {
+    (tape_cell_idx != current_head_pos && current_tape[tape_cell_idx] && !dest_tape[tape_cell_idx]) ||
+    (tape_cell_idx != current_head_pos && !current_tape[tape_cell_idx] && dest_tape[tape_cell_idx]) ||
+    // STATE_TABLE.get_write_value(const, const) is a known constant value during the compilation process.
+    (tape_cell_idx == current_head_pos && current_state == 1 && current_tape[current_head_pos] && STATE_TABLE.get_write_value(1, true) && !dest_tape[tape_cell_idx]) ||
+    (tape_cell_idx == current_head_pos && current_state == 1 && current_tape[current_head_pos] && !STATE_TABLE.get_write_value(1, true) && dest_tape[tape_cell_idx]) ||
+    (tape_cell_idx == current_head_pos && current_state == 1 && !current_tape[current_head_pos] && STATE_TABLE.get_write_value(1, false) && !dest_tape[tape_cell_idx]) ||
+    (tape_cell_idx == current_head_pos && current_state == 1 && !current_tape[current_head_pos] && !STATE_TABLE.get_write_value(1, false) && dest_tape[tape_cell_idx])
+    // And so on for each possible value of current_state (finite number of states)...
+}
+```
+
+Written this way, each individual line of the function can be translated into a single CSS selector. The selectors in tandem form the logical OR. With the DOM layout above, the first line can be converted to:
 ```css
-#s0_0:checked ~ [name=h0]:checked + * + :checked + * + * + * + :not(:checked) + * + * + * + * + * + * + * + * + * + * + * + * {
-  display: inline;
+input:not(:checked) + input:checked + input + input:not(:checked) + label + label {
+  visibility: visible;
 }
 ```
 
 ### Computing the updated head position
 
-This will largely go through the same derivation process as computing the updated tape cells. One notable difference is that these labels are for radio buttons so the label should only be shown if the expected value is checked but the destination value is currently unchecked.
-```python
-def shouldShowRadioLabel(headPositionIdx):
-  readValue = currentTape[currentHeadPos]
-  move = stateTable[currentState][readValue].move
-  if move == 'L':
-    # Tape moves left, head position moves right.
-    updatedHeadPos = currentHeadPos + 1
-  else:
-    updatedHeadPos = currentHeadPos - 1
-  # Target value for this index.
-  value = updatedHeadPos == headPositionIdx
-  return value and not destHeadPos[headPositionIdx]
+This will largely go through the same derivation process as computing the updated tape cells. One notable difference is that these labels are for radio buttons and so the label should only be shown if the expected value is checked but the destination value is currently unchecked.
+```rust
+fn show_head_pos_radio_label(
+    head_pos_idx: usize,
+    current_tape: &[bool],
+    current_head_pos: usize,
+    dest_head_pos: &[bool],
+    current_state: usize,
+) -> bool {
+    let read_value = current_tape[current_head_pos];
+    let tape_move_dir = STATE_TABLE.get_tape_mov_dir(current_state, read_value);
+    let updated_head_pos = match tape_move_dir {
+        TapeMoveDir::Left => current_head_pos + 1, // Tape moves left -> head position moves right.
+        TapeMoveDir::Right => current_head_pos - 1,
+    };
+
+    let expect_selected = head_pos_idx == updated_head_pos;
+    expect_selected && !dest_head_pos[head_pos_idx]
+}
 ```
+
 Going through the same mechanical steps:
-```python
-def shouldShowRadioLabel(headPositionIdx):
-  readValue = currentTape[currentHeadPos]
-  if readValue:
-    move = stateTable[currentState][1].move
-  else:
-    move = stateTable[currentState][0].move
-  if move == 'L':
-    # Tape moves left, head position moves right.
-    updatedHeadPos = currentHeadPos + 1
-  else:
-    updatedHeadPos = currentHeadPos - 1
-  return updatedHeadPos == headPositionIdx and not destHeadPos[headPositionIdx]
-```
-```python
-def shouldShowRadioLabel(headPositionIdx):
-  readValue = currentTape[currentHeadPos]
-  if currentState == 0:
-    if readValue:
-      move = stateTable[0][1].move
-    else:
-      move = stateTable[0][0].move
-  elif currentState == 1:
-    if readValue:
-      move = stateTable[1][1].move
-    else:
-      move = stateTable[1][0].move
-  # ...
-  if move == 'L':
-    # Tape moves left, head position moves right.
-    updatedHeadPos = currentHeadPos + 1
-  else:
-    updatedHeadPos = currentHeadPos - 1
-  return updatedHeadPos == headPositionIdx and not destHeadPos[headPositionIdx]
-```
-```python
-def shouldShowRadioLabel(headPositionIdx):
-  return (currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].move == 'L' and currentHeadPos + 1 == headPositionIdx and not destHeadPos[headPositionIdx]) or
-    (currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].move == 'R' and currentHeadPos - 1 == headPositionIdx and not destHeadPos[headPositionIdx])  or
-    (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].move == 'L' and currentHeadPos + 1 == headPositionIdx and not destHeadPos[headPositionIdx]) or
-    (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].move == 'R' and currentHeadPos - 1 == headPositionIdx and not destHeadPos[headPositionIdx]) # ...
-```
-The first line, assuming headPositionIdx is equal to one and stateTable[0][1].move == 'L', can be expressed in CSS as:
-```css
-#s0_0:checked ~ #h0_0:checked ~ #t0_0:checked ~ #h1_1:not(:checked) ~ [for=h1_1] {
-  display: inline;
+```rust
+fn show_head_pos_radio_label(
+    head_pos_idx: usize,
+    current_tape: &[bool],
+    current_head_pos: usize,
+    dest_head_pos: &[bool],
+    current_state: usize,
+) -> bool {
+    // STATE_TABLE.get_tape_mov_dir(const, const) is a known constant value during the compilation process.
+    (current_state == 1 && current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, true) == TapeMoveDir::Left && head_pos_idx == current_head_pos + 1  && !dest_head_pos[head_pos_idx]) ||
+    (current_state == 1 && current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, true) == TapeMoveDir::Right && head_pos_idx == current_head_pos - 1 && !dest_head_pos[head_pos_idx]) ||
+    (current_state == 1 && !current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, false) == TapeMoveDir::Left && head_pos_idx == current_head_pos + 1 && !dest_head_pos[head_pos_idx]) ||
+    (current_state == 1 && !current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, false) == TapeMoveDir::Right && head_pos_idx == current_head_pos - 1 && !dest_head_pos[head_pos_idx])
+    // And so on for each possible value of current_state (finite number of states)...
 }
 ```
-Generalized to:
+
+The second line, assuming `STATE_TABLE.get_tape_mov_dir(1, true)` returns `TapeMoveDir::Right`, can be translated to:
 ```css
-#s0_0:checked ~ [name=h0]:checked + [name=h0] + :checked + * + * + :not(:checked) + * + * + * + * + * + * + * + * + * + * + * + * {
-  display: inline;
+input#state-1:checked ~ input:not(:checked) + input + label + label + input:checked + input:checked + input + input + label {
+  visibility: visible;
 }
 ```
-The second `[name=h0]` acts as a sort of bounds checking to avoid unplanned memory writes when trying to move off the edge of the tape.
 
 ### Computing the next state
 
-This is very similar to computing the updated head position:
-```python
-def shouldShowRadioLabel(stateIdx):
-  readValue = currentTape[currentHeadPos]
-  nextState = stateTable[currentState][readValue].next
-  # Target value for this index.
-  value = nextState == stateIdx
-  return value and not destStates[stateIdx]
+Same drill:
+```rust
+fn show_state_radio_label(
+    state_idx: usize,
+    current_tape: &[bool],
+    current_head_pos: usize,
+    current_state: usize,
+    dest_state: &[bool]
+) -> bool {
+    let read_value = current_tape[current_head_pos];
+    let next_state = STATE_TABLE.get_next_state(current_state, read_value);
+
+    let expect_selected = state_idx == next_state;
+    expect_selected && !dest_state[state_idx]
+}
 ```
-```python
-def shouldShowRadioLabel(stateIdx):
-  readValue = currentTape[currentHeadPos]
-  if readValue:
-    nextState = stateTable[currentState][1].next
-  else:
-    nextState = stateTable[currentState][0].next
-  return nextState == stateIdx and not destStates[stateIdx]
+
+```rust
+fn show_state_radio_label(
+    state_idx: usize,
+    current_tape: &[bool],
+    current_head_pos: usize,
+    current_state: usize,
+    dest_state: &[bool]
+) -> bool {
+    // STATE_TABLE.get_next_state(const, const) is a known constant value during the compilation process.
+    (current_state == 1 && current_tape[current_head_pos] && state_idx == STATE_TABLE.get_next_state(1, true) && !dest_state[state_idx]) ||
+    (current_state == 1 && !current_tape[current_head_pos] && state_idx == STATE_TABLE.get_next_state(1, false) && !dest_state[state_idx])
+    // And so on for each possible value of current_state (finite number of states)...
+}
 ```
-```python
-def shouldShowRadioLabel(stateIdx):
-  readValue = currentTape[currentHeadPos]
-  if currentState == 0:
-    if readValue:
-      nextState = stateTable[0][1].next
-    else:
-      nextState = stateTable[0][0].next
-  elif currentState == 1:
-    if readValue:
-      nextState = stateTable[1][1].next
-    else:
-      nextState = stateTable[1][0].next
-  # ...
-  return nextState == stateIdx and not destStates[stateIdx]
-```
-```python
-def shouldShowRadioLabel(stateIdx):
-  return (currentState == 0 and currentTape[currentHeadPos] and stateTable[0][1].next == stateIdx and not destStates[stateIdx]) or
-    (currentState == 0 and not currentTape[currentHeadPos] and stateTable[0][0].next == stateIdx and not destStates[stateIdx]) # ...
-```
-Assuming stateIdx and stateTable[0][1].next are equal to one, the first line can be expressed as:
+
+Assuming `state_idx == 2` and `STATE_TABLE.get_next_state(1, true) == 2`, the first line can be translated to:
 ```css
-#s0_0:checked ~ #s1_1:not(:checked) ~ [name=h0]:checked + * + :checked ~ [for=s1_1] {
-  display: inline;
+input#state-1:checked ~ input#state-2-next:not(:checked) ~ input[name="head-position"]:checked + input:checked ~ label[for="state-2-next"] {
+  visibility: visible;
 }
 ```
 
-### Generalizing to many iterations
+### Extending to many iterations
 
-There can be a possibly infinite number of Turing machine iterations so we cannot just create more destination inputs to scale up. The key is that we only ever need to keep track of the current inputs and the inputs currently being written to. Once an iteration is done, we can just swap the two so that the inputs we've just written to are now the current inputs we are computing from.
+There can be a possibly infinite number of Turing machine iterations so we cannot just create more destination inputs to scale up. The key is that we only ever need to keep track of the current inputs and the destination inputs being written to. Once an iteration is done, the pointers to the source and destination buffers can be swapped (i.e. `#tape-cell-1-next` is treated as the current value of the first tape cell while `#tape-cell-1` is the destination input). The CSS rules we just derived would have to be copied and altered slightly (due to differing relative positions of inputs and labels) for this second scenario.
 
-Information about which set of inputs is which will have to be stored in another boolean checkbox input along with an associated label. The tricky thing here is that computing the visibility of the label in this case would be tremendously complex as it can only be toggled after an iteration is fully complete or if we know that all other labels are invisible. Instead, we can just make the label always visible but place it under all the other labels so that it is guaranteed to be toggled last.
-```html
-<!-- Indicates which set of inputs we are deriving from. -->
-<input type="checkbox" id="f">
+To record which scenario we are in and act accordingly, one more boolean checkbox input will be added. Its associated label would be placed under all other labels. In this way, only after all the necessary updates are performed for an iteration would the user click then switch to the next round.
 
-<input type="radio" name="s0" id="s0_0"><input type="radio" name="s0" id="s0_1">
+This bottommost iteration toggle label should be always visible unless the Turing machine enters the halting state. Once the user finishes updating the inputs for the current iteration and the resulting state happens to be the halting state, there will be no more visible labels preventing any further user interaction.
 
-<input type="radio" name="s1" id="s1_0"><input type="radio" name="s1" id="s1_1">
-
-<input type="radio" name="h0" id="h0_0"><input type="radio" name="h0" id="h0_1">
-
-<input type="checkbox" id="t0_0"><input type="checkbox" id="t0_1">
-
-<input type="radio" name="h1" id="h1_0"><input type="radio" name="h1" id="h1_1">
-
-<input type="checkbox" id="t1_0"><input type="checkbox" id="t1_1">
-
-<!-- Labels for each input, stacked on top of each other using absolute positioning. -->
-<label for="f"></label>
-<label for="s0_0"></label><label for="s0_1"></label><label for="h0_0"></label><label for="h0_1"></label><label for="t0_0"></label><label for="t0_1"></label>
-<label for="s1_0"></label><label for="s1_1"></label><label for="h1_0"></label><label for="h1_1"></label><label for="t1_0"></label><label for="t1_1"></label>
-```
-All of our previous CSS rules will need to be adapted for both cases. For example, the previous rule for helping compute the next state becomes:
-```css
-#f:not(:checked) ~ #s0_0:checked ~ #s1_1:not(:checked) ~ [name=h0]:checked + * + :checked ~ [for=s1_1] {
-  display: inline;
-}
-
-#f:checked ~ #s0_1:not(:checked) ~ #s1_0:checked ~ [name=h1]:checked + * + :checked ~ [for=s0_1] {
-  display: inline;
-}
-```
-
-### Halting
-
-The halting state does not need to be treated any differently than the other states in the case of input and label representation. To stop the cycle of iterations, we can show the bottommost iteration toggle label only if the current state is not the halting state.
-
-Assuming `#s0_1` and `#s1_1` represent the halting state, this looks like:
-```css
-#s0_1:not(:checked) ~ #s1_1:not(:checked) ~ [for=f] {
-  display:inline;
-}
-```
-Then, once the user finishes updating the inputs for the current iteration and the resulting state happens to be the halting state, there will be no way to continue and the inputs will reflect the final results.
+## Practical applications
