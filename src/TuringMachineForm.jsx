@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './TuringMachineForm.css';
 import TuringMachineStateTable from './TuringMachineStateTable.jsx'
 import ShareableHtmlLink from './ShareableHtmlLink.jsx';
-import toHTML from './turingMachineConversion.jsx';
+import toHTML from './CompiledMachinePageBody.jsx';
 
 const DEFAULT_STATE_0 = { name: 'A', 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'L', next: 'A' } };
 const DEFAULT_ADD = { 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'L', next: 'HALT' } };
@@ -11,8 +11,6 @@ export default function TuringMachineForm() {
   const [numTapeCells, setNumTapeCells] = useState("15");
   const [config, setConfig] = useState([DEFAULT_STATE_0]);
   const [generatedHTML, setGeneratedHTML] = useState(null);
-
-  const parsedNumTapeCells = parseInputNum(numTapeCells);
 
   function addNewState() {
     const configCopy = [...config];
@@ -46,7 +44,11 @@ export default function TuringMachineForm() {
         onChange={e => updateNumTapeCells(e.target.value)} />
       </label>
       <div className="bottom-spacing">
-        <button onClick={() => setGeneratedHTML(toHTML(config, parsedNumTapeCells))}>Compile</button>
+        <button onClick={() => {
+          const parsedNumTapeCells = parseInputNum(numTapeCells);
+          setNumTapeCells(parsedNumTapeCells.toString());
+          setGeneratedHTML(toHTML(config, parsedNumTapeCells));
+        }}>Compile</button>
       </div>
       <ShareableHtmlLink html={generatedHTML} />
     </>

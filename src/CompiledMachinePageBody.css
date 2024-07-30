@@ -1,0 +1,117 @@
+.machine {
+  position: relative;
+  white-space: nowrap;
+  height: 350px;
+  user-select: none;
+  margin: 40px 0px;
+}
+
+.scroll-x {
+  overflow-x: auto;
+  /* For some reason, this is needed or else children input outlines are cut off... */
+  margin: -5px;
+  padding: 5px;
+}
+
+.machine-grid {
+  display: inline-grid;
+  column-gap: 2px;
+  row-gap: 10px;
+  /* Six rows: state, cells, tape head X2. */
+}
+
+input,
+i {
+  display: none;
+}
+
+[id*="TAPE_VALUE_PREFIX"],
+p {
+  appearance: none;
+  color: white;
+  background-color: rgb(66, 139, 202);
+  font-family: "Courier New";
+  font-size: 28px;
+  line-height: normal;
+  padding: 5px 12px;
+  margin: 0px;
+  grid-row: 2;
+}
+
+p+p {
+  grid-row: 5;
+}
+
+[id*="TAPE_VALUE_PREFIX"]:checked::before,
+:checked+*+*+*+*+*+p::before {
+  content: "1";
+}
+
+[id*="TAPE_VALUE_PREFIX"]:not(:checked)::before,
+:not(:checked)+*+*+*+*+*+p::before {
+  content: "0";
+}
+
+label {
+  display: none;
+  cursor: pointer;
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  font-family: "Segoe UI";
+  font-size: 16px;
+  color: white;
+  text-align: center;
+  background-color: #22c55e;
+  width: 115px;
+  padding: 6px 0px;
+  border-radius: 6px;
+}
+
+label:hover {
+  background-color: #16a34a;
+}
+
+label::before {
+  content: "Execute Step";
+}
+
+[for="STARTED_ID"]::before {
+  content: "Start";
+}
+
+/* Reuse some of the dummy elements to display the state. */
+p+i,
+p+i+i {
+  display: block;
+  font-style: normal;
+  grid-row: 1;
+  grid-column: 1 / 5;
+}
+
+i::before {
+  content: "State: ";
+}
+
+p+i+i {
+  grid-row: 4;
+}
+
+/* Show the start label initially. */
+#STARTED_ID:not(:checked)~[for="STARTED_ID"] {
+  display: block;
+}
+
+/* Allow the user to toggle the top row tape cell inputs before starting. */
+#STARTED_ID:not(:checked)~[id*="0BUFFER_SUFFIXTAPE_VALUE_PREFIX"] {
+  display: block;
+}
+
+#STARTED_ID:not(:checked)~p {
+  display: none;
+}
+
+/* Hide the second state label before starting. */
+#STARTED_ID:not(:checked)~p+i+i {
+  display: none;
+}
