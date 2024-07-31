@@ -1,4 +1,3 @@
-import React from 'react';
 import './App.css';
 import AppLayout from './AppLayout.jsx';
 import TuringMachineForm from './TuringMachineForm.jsx';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './TuringMachineForm.css';
 import TuringMachineStateTable from './TuringMachineStateTable.jsx'
 import ShareableHtmlLink from './ShareableHtmlLink.jsx';

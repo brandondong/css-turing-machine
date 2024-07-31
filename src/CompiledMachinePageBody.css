@@ -70,7 +70,7 @@ p::before {
   grid-row: 3;
 }
 
-[id*="1BUFFER_SUFFIXHEAD_POS_PREFIX"] {
+[id*="BUFFER_PREFIX1HEAD_POS_PREFIX"] {
   grid-row: 6;
 }
 
@@ -133,13 +133,13 @@ p+i+i {
 }
 
 /* Allow the user to toggle the top row tape cell inputs before starting. */
-#STARTED_ID:not(:checked)~[id*="0BUFFER_SUFFIXTAPE_VALUE_PREFIX"] {
+#STARTED_ID:not(:checked)~[id*="BUFFER_PREFIX0TAPE_VALUE_PREFIX"] {
   display: block;
 }
 
 /* Hide display cells/bottom tape head before starting. */
 #STARTED_ID:not(:checked)~p,
-#STARTED_ID:not(:checked)~[id*="1BUFFER_SUFFIXHEAD_POS_PREFIX"] {
+#STARTED_ID:not(:checked)~[id*="BUFFER_PREFIX1HEAD_POS_PREFIX"] {
   display: none;
 }
 
@@ -150,14 +150,14 @@ p+i+i {
 
 /* Fade the top elements after starting and the bottom is the destination. */
 #STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~:not(p)+p,
-#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~[id*="0BUFFER_SUFFIXHEAD_POS_PREFIX"],
+#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~[id*="BUFFER_PREFIX0HEAD_POS_PREFIX"],
 #STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~p+i {
   opacity: 0.5;
 }
 
 /* Fade the bottom elements when the top is the destination. */
 #BUFFER_SWITCH_ID:checked~p+p,
-#BUFFER_SWITCH_ID:checked~[id*="1BUFFER_SUFFIXHEAD_POS_PREFIX"],
+#BUFFER_SWITCH_ID:checked~[id*="BUFFER_PREFIX1HEAD_POS_PREFIX"],
 #BUFFER_SWITCH_ID:checked~p+i+i {
   opacity: 0.5;
 }

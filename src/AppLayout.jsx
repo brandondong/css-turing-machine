@@ -1,4 +1,3 @@
-import React from 'react';
 import './AppLayout.css';
 
 export default function AppLayout({ main, footer }) {

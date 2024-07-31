@@ -1,8 +1,8 @@
-import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import AppLayout from './AppLayout.jsx';
 import TuringMachineStateTable from './TuringMachineStateTable.jsx';
 import { GITHUB_LINK } from './contants.js';
+import { select, id, checked, unchecked, attr, attrContains } from './selector.js';
 import indexCSS from './index.css?inline';
 import appLayoutCSS from './AppLayout.css?inline';
 import turingMachineStateTableCSS from './TuringMachineStateTable.css?inline';
@@ -21,7 +21,8 @@ function CompiledMachinePageBody({ config, numTapeCells }) {
   />
 }
 
-const BUFFER_SUFFIX = 'b';
+const BUFFER_PREFIX0 = 'a';
+const BUFFER_PREFIX1 = 'b';
 const STATE_PREFIX = 's';
 const HEAD_POS_PREFIX = 'h';
 const TAPE_VALUE_PREFIX = 't';
@@ -32,12 +33,10 @@ function CompiledTuringMachine({ config, numTapeCells }) {
   // TURING MACHINE FORMAT:
   // "Started" radio input
   // "Buffer 0 is destination" checkbox input
+  // State radio inputs (interleaved between buffers)
   // Switch buffer label
-  // Buffer 0 state radio inputs
-  // Buffer 1 state radio inputs
   // TAPE CELLS
-  // Buffer 0 state labels
-  // Buffer 1 state labels
+  // State labels (interleaved between buffers)
   // Start label
 
   // TAPE CELL FORMAT:
@@ -52,19 +51,24 @@ function CompiledTuringMachine({ config, numTapeCells }) {
   // Buffer 0 tape cell X value display (cannot make checkboxes visible or else user can toggle them via mouse/keyboard)
   // Buffer 1 tape cell X value display
 
-  const dynElems = [];
+  const elems = [];
   let counter = 0;
+
+  elems.push(<input id={STARTED_ID} type="radio" key={counter++} />);
+  elems.push(<input id={BUFFER_SWITCH_ID} type="checkbox" key={counter++} />);
 
   const numStates = config.length + 1; // User configuration does not include halting state.
   // State radio inputs:
-  for (let buffer = 0; buffer < 2; buffer++) {
-    for (let stateIdx = 0; stateIdx < numStates; stateIdx++) {
+  for (let stateIdx = 0; stateIdx < numStates; stateIdx++) {
+    for (let buffer = 0; buffer < 2; buffer++) {
       const inputId = getInputId(buffer, STATE_PREFIX, stateIdx);
       const inputGroup = getInputGroup(buffer, STATE_PREFIX);
       // Initialize with the Turing machine in the first state.
-      dynElems.push(<input id={inputId} type="radio" name={inputGroup} defaultChecked={stateIdx === 0} key={counter++} />);
+      elems.push(<input id={inputId} type="radio" name={inputGroup} defaultChecked={stateIdx === 0} key={counter++} />);
     }
   }
+
+  elems.push(<label htmlFor={BUFFER_SWITCH_ID} key={counter++} />);
 
   // Tape cells:
   const halfwayVisibleTape = Math.min(Math.ceil(numTapeCells / 2) - 1, 12);
@@ -77,20 +81,20 @@ function CompiledTuringMachine({ config, numTapeCells }) {
         const tapeHeadInputId = getInputId(buffer, HEAD_POS_PREFIX, tapeCellIdx);
         const tapeHeadInputGroup = getInputGroup(buffer, HEAD_POS_PREFIX);
         // Initialize the head position halfway along the visible tape.
-        dynElems.push(<input id={tapeHeadInputId} type="radio" name={tapeHeadInputGroup} defaultChecked={tapeCellIdx === halfwayVisibleTape} key={counter++} />);
+        elems.push(<input id={tapeHeadInputId} type="radio" name={tapeHeadInputGroup} defaultChecked={tapeCellIdx === halfwayVisibleTape} key={counter++} />);
       } else {
         // Maintain the relative positioning of elements for the last tape head label.
-        dynElems.push(<i key={counter++} />);
+        elems.push(<i key={counter++} />);
       }
     }
     // Tape cell value inputs:
     for (let buffer = 0; buffer < 2; buffer++) {
       if (!isDummyIdx) {
         const tapeValInputId = getInputId(buffer, TAPE_VALUE_PREFIX, tapeCellIdx);
-        dynElems.push(<input id={tapeValInputId} type="checkbox" key={counter++} />);
+        elems.push(<input id={tapeValInputId} type="checkbox" key={counter++} />);
       } else {
         // Maintain the relative positioning of elements for the last tape head label.
-        dynElems.push(<i key={counter++} />);
+        elems.push(<i key={counter++} />);
       }
     }
     // Tape head labels:
@@ -98,50 +102,61 @@ function CompiledTuringMachine({ config, numTapeCells }) {
       // Tape head labels are offset by 1, the first label is just a dummy element.
       if (tapeCellIdx > 0) {
         const forTapeHeadInputId = getInputId(buffer, HEAD_POS_PREFIX, tapeCellIdx - 1);
-        dynElems.push(<label htmlFor={forTapeHeadInputId} key={counter++} />);
+        elems.push(<label htmlFor={forTapeHeadInputId} key={counter++} />);
       } else {
-        dynElems.push(<i key={counter++} />);
+        elems.push(<i key={counter++} />);
       }
     }
     if (!isDummyIdx) {
       // Tape cell value labels:
       for (let buffer = 0; buffer < 2; buffer++) {
         const forTapeValInputId = getInputId(buffer, TAPE_VALUE_PREFIX, tapeCellIdx);
-        dynElems.push(<label htmlFor={forTapeValInputId} key={counter++} />);
+        elems.push(<label htmlFor={forTapeValInputId} key={counter++} />);
       }
       // Tape cell value display:
       for (let buffer = 0; buffer < 2; buffer++) {
-        dynElems.push(<p key={counter++} />);
+        elems.push(<p key={counter++} />);
       }
     }
   }
 
   // State labels:
-  for (let buffer = 0; buffer < 2; buffer++) {
-    for (let stateIdx = 0; stateIdx < numStates; stateIdx++) {
+  for (let stateIdx = 0; stateIdx < numStates; stateIdx++) {
+    for (let buffer = 0; buffer < 2; buffer++) {
       const forInputId = getInputId(buffer, STATE_PREFIX, stateIdx);
-      dynElems.push(<label htmlFor={forInputId} key={counter++} />)
+      elems.push(<label htmlFor={forInputId} key={counter++} />)
     }
   }
+
+  elems.push(<label htmlFor={STARTED_ID} key={counter++} />)
+
   return <div className="machine">
     <div className="scroll-x">
       <div className="machine-grid">
-        <input id={STARTED_ID} type="radio" />
-        <input id={BUFFER_SWITCH_ID} type="checkbox" />
-        <label htmlFor={BUFFER_SWITCH_ID} />
-        {dynElems}
-        <label htmlFor={STARTED_ID} />
+        {elems}
       </div>
     </div>
   </div>;
 }
 
 function getInputId(buffer, prefix, idx) {
-  return `${buffer}${BUFFER_SUFFIX}${prefix}${idx}`;
+  return `${getBufferPrefix(buffer)}${prefix}${idx}`;
 }
 
 function getInputGroup(buffer, prefix) {
-  return `${buffer}${BUFFER_SUFFIX}${prefix}`;
+  return `${getBufferPrefix(buffer)}${prefix}`;
+}
+
+function getBufferPrefix(buffer) {
+  return buffer === 0 ? BUFFER_PREFIX0 : BUFFER_PREFIX1;
+}
+
+export default function toHTML(config, numTapeCells) {
+  return '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8"/>\n<style>\n' +
+    getCompiledMachinePageStyles(config) +
+    '\n</style>\n<title>CSS Turing Machine</title>\n</head>\n<body>\n' +
+    getCompiledMachinePageBody(config, numTapeCells) +
+    '\n</body>\n</html>';
 }
 
 function getCompiledMachinePageBody(config, numTapeCells) {
@@ -155,22 +170,90 @@ function getCompiledMachinePageStyles(config) {
     compiledMachinePageBodyCSS
       .replaceAll('STARTED_ID', STARTED_ID)
       .replaceAll('TAPE_VALUE_PREFIX', TAPE_VALUE_PREFIX)
-      .replaceAll('BUFFER_SUFFIX', BUFFER_SUFFIX)
+      .replaceAll('BUFFER_PREFIX0', BUFFER_PREFIX0)
+      .replaceAll('BUFFER_PREFIX1', BUFFER_PREFIX1)
       .replaceAll('HEAD_POS_PREFIX', HEAD_POS_PREFIX)
       .replaceAll('BUFFER_SWITCH_ID', BUFFER_SWITCH_ID);
-  return staticStyles;
+
   // Refer to the project's README for a detailed description of how this is supposed to work.
-  // addMachineDisplayStyling(sb, config);
+  const dynStyles = [];
+  addBufferSwitchLabelStyling(dynStyles, config);
+  addStateDisplayStyling(dynStyles, config);
+  addStateLabelStyling(dynStyles, config);
   // addToggleLabelStyling(sb, config);
-  // addStateLabelStyling(sb, config);
   // addTapeCellStyling(sb, config);
   // addHeadPosStyling(sb, config);
+  return staticStyles + '\n' + dynStyles.join('\n');
 }
 
-export default function toHTML(config, numTapeCells) {
-  return '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8"/>\n<style>\n' +
-    getCompiledMachinePageStyles(config) +
-    '\n</style>\n<title>CSS Turing Machine</title>\n</head>\n<body>\n' +
-    getCompiledMachinePageBody(config, numTapeCells) +
-    '\n</body>\n</html>';
+function addBufferSwitchLabelStyling(sb, config) {
+  // Show the buffer switch label if we're not in the halting state.
+  const haltingState = config.length;
+  const b0HaltingStateInputId = getInputId(0, STATE_PREFIX, haltingState);
+
+  const showBufferSwitchLabel = select(id(b0HaltingStateInputId).unchecked(), '+', unchecked(), '~', attr('for', BUFFER_SWITCH_ID))
+    .displayBlock();
+  sb.push(showBufferSwitchLabel);
+}
+
+function addStateDisplayStyling(sb, config) {
+  const stateNames = getOrderedStateNames(config);
+  stateNames.forEach((stateName, idx) => {
+    const b0StateInputId = getInputId(0, STATE_PREFIX, idx);
+    const b1StateInputId = getInputId(1, STATE_PREFIX, idx);
+
+    const displayStateNameTop = select(id(b0StateInputId).checked(), '~', 'p', '+', 'i::after')
+      .content(stateName);
+    const displayStateNameBottom = select(id(STARTED_ID).checked(), '~', id(b1StateInputId).checked(), '~', 'p', '+', 'i', '+', 'i::after')
+      .content(stateName);
+
+    sb.push(displayStateNameTop);
+    sb.push(displayStateNameBottom);
+  });
+}
+
+function addStateLabelStyling(sb, config) {
+  const stateNames = getOrderedStateNames(config);
+  for (let source = 0; source < 2; source++) {
+    const dest = 1 - source;
+    const matchesSourceSelector = source === 0 ? id(BUFFER_SWITCH_ID).unchecked() : id(BUFFER_SWITCH_ID).checked();
+
+    // Outer loop represents the destination state for which we are computing the visibility of its label.
+    stateNames.forEach((stateName, idx) => {
+      const destStateInputId = getInputId(dest, STATE_PREFIX, idx);
+      const destStateLabelSelector = attr('for', destStateInputId);
+      const destStateUncheckedSelector = id(destStateInputId).unchecked();
+
+      const currentHeadSelector = attrContains('id', getBufferPrefix(source) + HEAD_POS_PREFIX).checked();
+
+      // Inner loop represents each possible value of the current state.
+      // No rules necessary for case that current state is halting state (cannot transition to any other state).
+      config.forEach((currentState, currentStateIdx) => {
+        const currentStateInputId = getInputId(source, STATE_PREFIX, currentStateIdx);
+        const currentStateCheckedSelector = id(currentStateInputId).checked();
+        // currentStateCheckedSelector/destStateUncheckedSelector need to be ordered when creating the selector based on DOM layout.
+        const [first, second] = [currentStateIdx, source] < [idx, dest] ?
+          [currentStateCheckedSelector, destStateUncheckedSelector] :
+          [destStateUncheckedSelector, currentStateCheckedSelector];
+
+        if (currentState[1].next === stateName) {
+          const displayNextStateFor1 = select(matchesSourceSelector, '~', first, '~', second, '~', currentHeadSelector, '+', '*', '+', checked(), '~', destStateLabelSelector)
+            .displayBlock();
+          sb.push(displayNextStateFor1);
+        }
+
+        if (currentState[0].next === stateName) {
+          const displayNextStateFor0 = select(matchesSourceSelector, '~', first, '~', second, '~', currentHeadSelector, '+', '*', '+', unchecked(), '~', destStateLabelSelector)
+            .displayBlock();
+          sb.push(displayNextStateFor0);
+        }
+      });
+    });
+  }
+}
+
+function getOrderedStateNames(config) {
+  const stateNames = config.map(s => s.name);
+  stateNames.push('HALT');
+  return stateNames;
 }
