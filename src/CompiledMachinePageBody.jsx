@@ -155,7 +155,9 @@ function getCompiledMachinePageStyles(config) {
     compiledMachinePageBodyCSS
       .replaceAll('STARTED_ID', STARTED_ID)
       .replaceAll('TAPE_VALUE_PREFIX', TAPE_VALUE_PREFIX)
-      .replaceAll('BUFFER_SUFFIX', BUFFER_SUFFIX);
+      .replaceAll('BUFFER_SUFFIX', BUFFER_SUFFIX)
+      .replaceAll('HEAD_POS_PREFIX', HEAD_POS_PREFIX)
+      .replaceAll('BUFFER_SWITCH_ID', BUFFER_SWITCH_ID);
   return staticStyles;
   // Refer to the project's README for a detailed description of how this is supposed to work.
   // addMachineDisplayStyling(sb, config);

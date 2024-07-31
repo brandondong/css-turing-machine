@@ -1,8 +1,7 @@
 .machine {
   position: relative;
   white-space: nowrap;
-  height: 350px;
-  user-select: none;
+  height: 360px;
   margin: 40px 0px;
 }
 
@@ -25,6 +24,10 @@ i {
   display: none;
 }
 
+input {
+  cursor: pointer;
+}
+
 [id*="TAPE_VALUE_PREFIX"],
 p {
   appearance: none;
@@ -42,14 +45,41 @@ p+p {
   grid-row: 5;
 }
 
+[id*="TAPE_VALUE_PREFIX"]::before,
+p::before {
+  content: "0";
+}
+
 [id*="TAPE_VALUE_PREFIX"]:checked::before,
 :checked+*+*+*+*+*+p::before {
   content: "1";
 }
 
-[id*="TAPE_VALUE_PREFIX"]:not(:checked)::before,
-:not(:checked)+*+*+*+*+*+p::before {
-  content: "0";
+/* Unlike with checkboxes, we can display radio buttons without the user being able to toggle them (by hiding all other options). */
+[id*="HEAD_POS_PREFIX"] {
+  display: block;
+  position: relative;
+  top: -18px;
+  appearance: none;
+  pointer-events: none;
+  color: #444;
+  font-family: "Courier New";
+  font-size: 28px;
+  margin: 0px 0px 20px 0px;
+  text-align: center;
+  grid-row: 3;
+}
+
+[id*="1BUFFER_SUFFIXHEAD_POS_PREFIX"] {
+  grid-row: 6;
+}
+
+[id*="HEAD_POS_PREFIX"]:not(:checked) {
+  visibility: hidden;
+}
+
+[id*="HEAD_POS_PREFIX"]::before {
+  content: "▲";
 }
 
 label {
@@ -86,7 +116,7 @@ p+i+i {
   display: block;
   font-style: normal;
   grid-row: 1;
-  grid-column: 1 / 5;
+  grid-column: 1 / 15;
 }
 
 i::before {
@@ -107,11 +137,27 @@ p+i+i {
   display: block;
 }
 
-#STARTED_ID:not(:checked)~p {
+/* Hide display cells/bottom tape head before starting. */
+#STARTED_ID:not(:checked)~p,
+#STARTED_ID:not(:checked)~[id*="1BUFFER_SUFFIXHEAD_POS_PREFIX"] {
   display: none;
 }
 
-/* Hide the second state label before starting. */
-#STARTED_ID:not(:checked)~p+i+i {
-  display: none;
+/* Use the second state label to show a help message before starting. */
+#STARTED_ID:not(:checked)~p+i+i::before {
+  content: "Set the initial tape input by clicking on the squares above.";
+}
+
+/* Fade the top elements after starting and the bottom is the destination. */
+#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~:not(p)+p,
+#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~[id*="0BUFFER_SUFFIXHEAD_POS_PREFIX"],
+#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~p+i {
+  opacity: 0.5;
+}
+
+/* Fade the bottom elements when the top is the destination. */
+#BUFFER_SWITCH_ID:checked~p+p,
+#BUFFER_SWITCH_ID:checked~[id*="1BUFFER_SUFFIXHEAD_POS_PREFIX"],
+#BUFFER_SWITCH_ID:checked~p+i+i {
+  opacity: 0.5;
 }
