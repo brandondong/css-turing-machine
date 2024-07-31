@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 
 export default function ShareableHtmlLink({ html }) {
   if (html === null) {
@@ -8,23 +8,21 @@ export default function ShareableHtmlLink({ html }) {
   return <ShareableLink url={dataUrl} />
 }
 
+const hasClipboardAPI = navigator?.clipboard?.writeText;
+
 function ShareableLink({ url }) {
-  const textInput = useRef(null);
   const [copied, setCopied] = useState(false);
-  useEffect(() => {
-    textInput.current.focus();
-  }, []);
 
   const copyToClipboard = () => {
-    textInput.current.select();
-    document.execCommand("copy");
-    setCopied(true);
+    navigator.clipboard.writeText(url)
+      .then(() => setCopied(true))
+      .catch(e => console.error(e.message));
   }
   const copyButtonText = copied ? 'Copied!' : 'Copy to Clipboard';
   return (
     <>
       <div>Generated Link:</div>
-      <input value={url} ref={textInput} readOnly /> <button onClick={copyToClipboard}>{copyButtonText}</button>
+      <input value={url} readOnly autoFocus /> {hasClipboardAPI && <button onClick={copyToClipboard}>{copyButtonText}</button>}
     </>);
 }
 
