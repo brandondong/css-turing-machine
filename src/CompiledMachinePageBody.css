@@ -110,6 +110,16 @@ label::before {
   content: "Start";
 }
 
+/* Label ordering: start -> tape value -> tape head -> state -> switch buffer. */
+[for="STARTED_ID"],
+[for*="TAPE_VALUE_PREFIX"] {
+  z-index: 2;
+}
+
+[for*="HEAD_POS_PREFIX"] {
+  z-index: 1;
+}
+
 /* Reuse some of the dummy elements to display the state. */
 p+i,
 p+i+i {

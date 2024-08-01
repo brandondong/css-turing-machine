@@ -140,7 +140,7 @@ function CompiledTuringMachine({ config, numTapeCells }) {
 }
 
 function getInputId(buffer, prefix, idx) {
-  return `${getBufferPrefix(buffer)}${prefix}${idx}`;
+  return `${getInputGroup(buffer, prefix)}${idx}`;
 }
 
 function getInputGroup(buffer, prefix) {
@@ -180,9 +180,9 @@ function getCompiledMachinePageStyles(config) {
   addBufferSwitchLabelStyling(dynStyles, config);
   addStateDisplayStyling(dynStyles, config);
   addStateLabelStyling(dynStyles, config);
-  // addToggleLabelStyling(sb, config);
-  // addTapeCellStyling(sb, config);
+  addTapeCellValueLabelStyling(dynStyles, config);
   // addHeadPosStyling(sb, config);
+
   return staticStyles + '\n' + dynStyles.join('\n');
 }
 
@@ -224,7 +224,7 @@ function addStateLabelStyling(sb, config) {
       const destStateLabelSelector = attr('for', destStateInputId);
       const destStateUncheckedSelector = id(destStateInputId).unchecked();
 
-      const currentHeadSelector = attrContains('id', getBufferPrefix(source) + HEAD_POS_PREFIX).checked();
+      const currentHeadSelector = attrContains('id', getInputGroup(source, HEAD_POS_PREFIX)).checked();
 
       // Inner loop represents each possible value of the current state.
       // No rules necessary for case that current state is halting state (cannot transition to any other state).
@@ -250,6 +250,53 @@ function addStateLabelStyling(sb, config) {
       });
     });
   }
+}
+
+function addTapeCellValueLabelStyling(sb, config) {
+  // Rules for non-head tape cell source/destination mismatch:
+  const displayMismatchUnchecked = select(id(BUFFER_SWITCH_ID).unchecked(), '~',
+    unchecked(), '+', '*', '+', checked(), '+', unchecked(), '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
+    .displayBlock();
+  const displayMismatchChecked = select(id(BUFFER_SWITCH_ID).unchecked(), '~',
+    unchecked(), '+', '*', '+', unchecked(), '+', checked(), '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
+    .displayBlock();
+  sb.push(displayMismatchUnchecked);
+  sb.push(displayMismatchChecked);
+  // And reverse direction:
+  const displayMismatchUncheckedReverse = select(id(BUFFER_SWITCH_ID).checked(), '~',
+    unchecked(), '+', unchecked(), '+', checked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
+    .displayBlock();
+  const displayMismatchCheckedReverse = select(id(BUFFER_SWITCH_ID).checked(), '~',
+    unchecked(), '+', checked(), '+', unchecked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
+    .displayBlock();
+  sb.push(displayMismatchUncheckedReverse);
+  sb.push(displayMismatchCheckedReverse);
+
+  // Rules for head tape cell where destination has mismatch with write instruction:
+  config.forEach((state, stateIdx) => {
+    const writeIf1 = state[1].write;
+    const writeIf0 = state[0].write;
+    const writeIf1DestMismatch = writeIf1 === '0' ? checked() : unchecked();
+    const writeIf0DestMismatch = writeIf0 === '0' ? checked() : unchecked();
+
+    const displayWriteIf1Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
+      checked(), '+', '*', '+', checked(), '+', writeIf1DestMismatch, '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
+      .displayBlock();
+    const displayWriteIf0Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
+      checked(), '+', '*', '+', unchecked(), '+', writeIf0DestMismatch, '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
+      .displayBlock();
+    sb.push(displayWriteIf1Mismatch);
+    sb.push(displayWriteIf0Mismatch);
+    // Reverse direction:
+    const displayWriteIf1MismatchReverse = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
+      checked(), '+', writeIf1DestMismatch, '+', checked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
+      .displayBlock();
+    const displayWriteIf0MismatchReverse = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
+      checked(), '+', writeIf0DestMismatch, '+', unchecked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
+      .displayBlock();
+    sb.push(displayWriteIf1MismatchReverse);
+    sb.push(displayWriteIf0MismatchReverse);
+  });
 }
 
 function getOrderedStateNames(config) {
