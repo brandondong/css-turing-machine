@@ -167,7 +167,7 @@ function getCompiledMachinePageStyles(config) {
   const staticStyles = indexCSS +
     appLayoutCSS +
     turingMachineStateTableCSS +
-    compiledMachinePageBodyCSS
+    compiledMachinePageBodyCSS // CSS file uses the longer, more descriptive names before getting substituted here.
       .replaceAll('STARTED_ID', STARTED_ID)
       .replaceAll('TAPE_VALUE_PREFIX', TAPE_VALUE_PREFIX)
       .replaceAll('BUFFER_PREFIX0', BUFFER_PREFIX0)
@@ -181,7 +181,7 @@ function getCompiledMachinePageStyles(config) {
   addStateDisplayStyling(dynStyles, config);
   addStateLabelStyling(dynStyles, config);
   addTapeCellValueLabelStyling(dynStyles, config);
-  // addHeadPosStyling(sb, config);
+  addHeadPositionLabelStyling(dynStyles, config);
 
   return staticStyles + '\n' + dynStyles.join('\n');
 }
@@ -235,6 +235,7 @@ function addStateLabelStyling(sb, config) {
         const [first, second] = [currentStateIdx, source] < [idx, dest] ?
           [currentStateCheckedSelector, destStateUncheckedSelector] :
           [destStateUncheckedSelector, currentStateCheckedSelector];
+        // TODO: if next === stateName regardless of the input value, then we can optimize this to one shorter selector.
 
         if (currentState[1].next === stateName) {
           const displayNextStateFor1 = select(matchesSourceSelector, '~', first, '~', second, '~', currentHeadSelector, '+', '*', '+', checked(), '~', destStateLabelSelector)
@@ -296,6 +297,76 @@ function addTapeCellValueLabelStyling(sb, config) {
       .displayBlock();
     sb.push(displayWriteIf1MismatchReverse);
     sb.push(displayWriteIf0MismatchReverse);
+  });
+}
+
+function addHeadPositionLabelStyling(sb, config) {
+  // Rules for head position where destination has mismatch with move instruction:
+  config.forEach((state, stateIdx) => {
+    const moveLeftIf1 = state[1].move === 'L';
+    const moveLeftIf0 = state[0].move === 'L';
+    // TODO: if moveLeftIf1 === moveLeftIf0, then we can optimize this to one shorter selector.
+
+    if (moveLeftIf1) {
+      // Concrete example: current head is at tape cell 0, moving to 1, destination head label is in tape cell 2 group.
+      const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
+        checked(), '+', '*', '+', checked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
+        .displayBlock();
+      sb.push(displayMoveIf1Mismatch);
+    } else {
+      // Concrete example: current head is at tape cell 1, moving to 0, destination head label is in tape cell 1 group.
+      const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
+        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        checked(), '+', '*', '+', checked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
+        .displayBlock();
+      sb.push(displayMoveIf1Mismatch);
+    }
+    if (moveLeftIf0) {
+      const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
+        checked(), '+', '*', '+', unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
+        .displayBlock();
+      sb.push(displayMoveIf0Mismatch);
+    } else {
+      const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
+        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        checked(), '+', '*', '+', unchecked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
+        .displayBlock();
+      sb.push(displayMoveIf0Mismatch);
+    }
+
+    // Reverse direction:
+    if (moveLeftIf1) {
+      const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
+        checked(), '+', '*', '+', checked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
+        .displayBlock();
+      sb.push(displayMoveIf1Mismatch);
+    } else {
+      const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
+        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        checked(), '+', '*', '+', checked(), '+', attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
+        .displayBlock();
+      sb.push(displayMoveIf1Mismatch);
+    }
+    if (moveLeftIf0) {
+      const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
+        checked(), '+', '*', '+', unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
+        .displayBlock();
+      sb.push(displayMoveIf0Mismatch);
+    } else {
+      const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
+        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+        checked(), '+', '*', '+', unchecked(), '+', attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
+        .displayBlock();
+      sb.push(displayMoveIf0Mismatch);
+    }
   });
 }
 
