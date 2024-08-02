@@ -165,9 +165,20 @@ p+i+i {
   opacity: 0.5;
 }
 
-/* Fade the bottom elements when the top is the destination. */
+/* Fade the bottom elements when the top is the destination and swap positions. */
 #BUFFER_SWITCH_ID:checked~p+p,
 #BUFFER_SWITCH_ID:checked~[id*="BUFFER_PREFIX1HEAD_POS_PREFIX"],
 #BUFFER_SWITCH_ID:checked~p+i+i {
   opacity: 0.5;
+  transform: translate(0px, -151px);
+}
+
+#BUFFER_SWITCH_ID:checked~:not(p)+p,
+#BUFFER_SWITCH_ID:checked~[id*="BUFFER_PREFIX0HEAD_POS_PREFIX"],
+#BUFFER_SWITCH_ID:checked~p+i {
+  transform: translate(0px, 151px);
+}
+
+* {
+  transition: opacity, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
