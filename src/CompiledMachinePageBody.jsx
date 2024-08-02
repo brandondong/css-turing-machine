@@ -303,11 +303,11 @@ function addTapeCellValueLabelStyling(sb, config) {
 function addHeadPositionLabelStyling(sb, config) {
   // Rules for head position where destination has mismatch with move instruction:
   config.forEach((state, stateIdx) => {
-    const moveLeftIf1 = state[1].move === 'L';
-    const moveLeftIf0 = state[0].move === 'L';
-    // TODO: if moveLeftIf1 === moveLeftIf0, then we can optimize this to one shorter selector.
+    const moveRightIf1 = state[1].move === 'R';
+    const moveRightIf0 = state[0].move === 'R';
+    // TODO: if moveRightIf1 === moveRightIf0, then we can optimize this to one shorter selector.
 
-    if (moveLeftIf1) {
+    if (moveRightIf1) {
       // Concrete example: current head is at tape cell 0, moving to 1, destination head label is in tape cell 2 group.
       const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
         checked(), '+', '*', '+', checked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
@@ -323,7 +323,7 @@ function addHeadPositionLabelStyling(sb, config) {
         .displayBlock();
       sb.push(displayMoveIf1Mismatch);
     }
-    if (moveLeftIf0) {
+    if (moveRightIf0) {
       const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
         checked(), '+', '*', '+', unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
         unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
@@ -339,7 +339,7 @@ function addHeadPositionLabelStyling(sb, config) {
     }
 
     // Reverse direction:
-    if (moveLeftIf1) {
+    if (moveRightIf1) {
       const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
         checked(), '+', '*', '+', checked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
         unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
@@ -353,7 +353,7 @@ function addHeadPositionLabelStyling(sb, config) {
         .displayBlock();
       sb.push(displayMoveIf1Mismatch);
     }
-    if (moveLeftIf0) {
+    if (moveRightIf0) {
       const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
         checked(), '+', '*', '+', unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
         unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',

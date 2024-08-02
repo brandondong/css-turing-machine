@@ -15,7 +15,7 @@ export default function TuringMachineStateTable({ config, setConfig }) {
             </th>)}
           </tr>
           <tr className="instruction-labels">
-            {config.map((c) => <React.Fragment key={c.name}><td>Write symbol</td><td>Move tape</td><td>Next state</td></React.Fragment>)}
+            {config.map((c) => <React.Fragment key={c.name}><td>Write symbol</td><td>Move head</td><td>Next state</td></React.Fragment>)}
           </tr>
           <tr>
             <td>0</td>

@@ -302,8 +302,8 @@ fn show_head_pos_radio_label(
     let read_value = current_tape[current_head_pos];
     let tape_move_dir = STATE_TABLE.get_tape_mov_dir(current_state, read_value);
     let updated_head_pos = match tape_move_dir {
-        TapeMoveDir::Left => current_head_pos + 1, // Tape moves left -> head position moves right.
-        TapeMoveDir::Right => current_head_pos - 1,
+        TapeMoveDir::Left => current_head_pos - 1,
+        TapeMoveDir::Right => current_head_pos + 1,
     };
 
     let expect_selected = head_pos_idx == updated_head_pos;
@@ -321,15 +321,15 @@ fn show_head_pos_radio_label(
     current_state: usize,
 ) -> bool {
     // STATE_TABLE.get_tape_mov_dir(const, const) is a known constant value during the compilation process.
-    (current_state == 1 && current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, true) == TapeMoveDir::Left && head_pos_idx == current_head_pos + 1  && !dest_head_pos[head_pos_idx]) ||
-    (current_state == 1 && current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, true) == TapeMoveDir::Right && head_pos_idx == current_head_pos - 1 && !dest_head_pos[head_pos_idx]) ||
-    (current_state == 1 && !current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, false) == TapeMoveDir::Left && head_pos_idx == current_head_pos + 1 && !dest_head_pos[head_pos_idx]) ||
-    (current_state == 1 && !current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, false) == TapeMoveDir::Right && head_pos_idx == current_head_pos - 1 && !dest_head_pos[head_pos_idx])
+    (current_state == 1 && current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, true) == TapeMoveDir::Left && head_pos_idx == current_head_pos - 1  && !dest_head_pos[head_pos_idx]) ||
+    (current_state == 1 && current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, true) == TapeMoveDir::Right && head_pos_idx == current_head_pos + 1 && !dest_head_pos[head_pos_idx]) ||
+    (current_state == 1 && !current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, false) == TapeMoveDir::Left && head_pos_idx == current_head_pos - 1 && !dest_head_pos[head_pos_idx]) ||
+    (current_state == 1 && !current_tape[current_head_pos] && STATE_TABLE.get_tape_mov_dir(1, false) == TapeMoveDir::Right && head_pos_idx == current_head_pos + 1 && !dest_head_pos[head_pos_idx])
     // And so on for each possible value of current_state (finite number of states)...
 }
 ```
 
-The second line, assuming `STATE_TABLE.get_tape_mov_dir(1, true)` returns `TapeMoveDir::Right`, can be translated to:
+The first line, assuming `STATE_TABLE.get_tape_mov_dir(1, true)` returns `TapeMoveDir::Left`, can be translated to:
 ```css
 input#state-1:checked ~ input:not(:checked) + input + label + label + input:checked + input:checked + input + input + label {
   visibility: visible;

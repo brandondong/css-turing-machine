@@ -4,8 +4,8 @@ import TuringMachineStateTable from './TuringMachineStateTable.jsx'
 import ShareableHtmlLink from './ShareableHtmlLink.jsx';
 import toHTML from './CompiledMachinePageBody.jsx';
 
-const DEFAULT_STATE_0 = { name: 'A', 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'L', next: 'A' } };
-const DEFAULT_ADD = { 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'L', next: 'HALT' } };
+const DEFAULT_STATE_0 = { name: 'A', 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'R', next: 'A' } };
+const DEFAULT_ADD = { 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'R', next: 'HALT' } };
 
 export default function TuringMachineForm() {
   const [numTapeCells, setNumTapeCells] = useState("15");
