@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './TuringMachineForm.css';
 import TuringMachineStateTable from './TuringMachineStateTable.jsx'
-import ShareableHtmlLink from './ShareableHtmlLink.jsx';
+import ShareableLink from './ShareableLink.jsx';
 import toHTML from './CompiledMachinePageBody.jsx';
 
 const DEFAULT_STATE_0 = { name: 'A', 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'R', next: 'A' } };
@@ -10,7 +10,7 @@ const DEFAULT_ADD = { 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0
 export default function TuringMachineForm() {
   const [numTapeCells, setNumTapeCells] = useState("15");
   const [config, setConfig] = useState([DEFAULT_STATE_0]);
-  const [generatedHTML, setGeneratedHTML] = useState(null);
+  const [generatedDataUrl, setGeneratedDataUrl] = useState(null);
 
   function addNewState() {
     const configCopy = [...config];
@@ -22,12 +22,19 @@ export default function TuringMachineForm() {
 
   function updateConfig(config) {
     setConfig(config);
-    setGeneratedHTML(null);
+    setGeneratedDataUrl(null);
   }
 
   function updateNumTapeCells(value) {
     setNumTapeCells(value);
-    setGeneratedHTML(null);
+    setGeneratedDataUrl(null);
+  }
+
+  function compileConfig() {
+    const parsedNumTapeCells = parseInputNum(numTapeCells);
+    const generatedHtml = toHTML(config, parsedNumTapeCells);
+    setNumTapeCells(parsedNumTapeCells.toString());
+    setGeneratedDataUrl(toDataURL(generatedHtml));
   }
 
   return (
@@ -43,16 +50,14 @@ export default function TuringMachineForm() {
         value={numTapeCells}
         onChange={e => updateNumTapeCells(e.target.value)} />
       </label>
-      <div className="bottom-spacing">
-        <button onClick={() => {
-          const parsedNumTapeCells = parseInputNum(numTapeCells);
-          setNumTapeCells(parsedNumTapeCells.toString());
-          setGeneratedHTML(toHTML(config, parsedNumTapeCells));
-        }}>Compile</button>
-      </div>
-      <ShareableHtmlLink html={generatedHTML} />
+      <div><button onClick={compileConfig}>Compile</button></div>
+      {generatedDataUrl && <div className="top-spacing"><ShareableLink url={generatedDataUrl} /></div>}
     </>
   );
+}
+
+function toDataURL(html) {
+  return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 }
 
 function parseInputNum(value) {

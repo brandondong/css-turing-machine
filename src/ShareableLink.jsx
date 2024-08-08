@@ -1,16 +1,8 @@
 import { useState } from 'react';
 
-export default function ShareableHtmlLink({ html }) {
-  if (html === null) {
-    return null;
-  }
-  const dataUrl = toDataURL(html);
-  return <ShareableLink url={dataUrl} />
-}
-
 const hasClipboardAPI = navigator?.clipboard?.writeText;
 
-function ShareableLink({ url }) {
+export default function ShareableLink({ url }) {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
@@ -24,8 +16,4 @@ function ShareableLink({ url }) {
       <div>Generated Link:</div>
       <input value={url} readOnly autoFocus /> {hasClipboardAPI && <button onClick={copyToClipboard}>{copyButtonText}</button>}
     </>);
-}
-
-function toDataURL(html) {
-  return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 }
