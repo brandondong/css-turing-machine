@@ -235,15 +235,17 @@ function addStateLabelStyling(sb, config) {
         const [first, second] = [currentStateIdx, source] < [idx, dest] ?
           [currentStateCheckedSelector, destStateUncheckedSelector] :
           [destStateUncheckedSelector, currentStateCheckedSelector];
-        // TODO: if next === stateName regardless of the input value, then we can optimize this to one shorter selector.
 
-        if (currentState[1].next === stateName) {
+        if (currentState[1].next === stateName && currentState[0].next === stateName) {
+          // Optimization: if next === stateName regardless of the input value, then we can shorten this to one selector which doesn't check the current head value.
+          const displayNextState = select(matchesSourceSelector, '~', first, '~', second, '~', destStateLabelSelector)
+            .displayBlock();
+          sb.push(displayNextState);
+        } else if (currentState[1].next === stateName) {
           const displayNextStateFor1 = select(matchesSourceSelector, '~', first, '~', second, '~', currentHeadSelector, '+', '*', '+', checked(), '~', destStateLabelSelector)
             .displayBlock();
           sb.push(displayNextStateFor1);
-        }
-
-        if (currentState[0].next === stateName) {
+        } else if (currentState[0].next === stateName) {
           const displayNextStateFor0 = select(matchesSourceSelector, '~', first, '~', second, '~', currentHeadSelector, '+', '*', '+', unchecked(), '~', destStateLabelSelector)
             .displayBlock();
           sb.push(displayNextStateFor0);
@@ -280,23 +282,30 @@ function addTapeCellValueLabelStyling(sb, config) {
     const writeIf1DestMismatch = writeIf1 === '0' ? checked() : unchecked();
     const writeIf0DestMismatch = writeIf0 === '0' ? checked() : unchecked();
 
-    const displayWriteIf1Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
-      checked(), '+', '*', '+', checked(), '+', writeIf1DestMismatch, '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
-      .displayBlock();
-    const displayWriteIf0Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
-      checked(), '+', '*', '+', unchecked(), '+', writeIf0DestMismatch, '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
-      .displayBlock();
-    sb.push(displayWriteIf1Mismatch);
-    sb.push(displayWriteIf0Mismatch);
-    // Reverse direction:
-    const displayWriteIf1MismatchReverse = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
-      checked(), '+', writeIf1DestMismatch, '+', checked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
-      .displayBlock();
-    const displayWriteIf0MismatchReverse = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
-      checked(), '+', writeIf0DestMismatch, '+', unchecked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
-      .displayBlock();
-    sb.push(displayWriteIf1MismatchReverse);
-    sb.push(displayWriteIf0MismatchReverse);
+    for (let source = 0; source < 2; source++) {
+      function displayWriteIf(tapeValue, destTapeValue) {
+        if (source === 0) {
+          return select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
+            checked(), '+', '*', '+', tapeValue, '+', destTapeValue, '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
+            .displayBlock();
+        } else {
+          return select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
+            checked(), '+', destTapeValue, '+', tapeValue, '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
+            .displayBlock();
+        }
+      }
+
+      if (writeIf1 === writeIf0) {
+        // Optimization: if writeIf1 === writeIf0, then we can shorten this to one selector that writes to the mismatched destination regardless of input tape value.
+        const displayWriteIfMismatch = displayWriteIf('*', writeIf1DestMismatch);
+        sb.push(displayWriteIfMismatch);
+      } else {
+        const displayWriteIf1Mismatch = displayWriteIf(checked(), writeIf1DestMismatch);
+        const displayWriteIf0Mismatch = displayWriteIf(unchecked(), writeIf0DestMismatch);
+        sb.push(displayWriteIf1Mismatch);
+        sb.push(displayWriteIf0Mismatch);
+      }
+    }
   });
 }
 
@@ -305,67 +314,58 @@ function addHeadPositionLabelStyling(sb, config) {
   config.forEach((state, stateIdx) => {
     const moveRightIf1 = state[1].move === 'R';
     const moveRightIf0 = state[0].move === 'R';
-    // TODO: if moveRightIf1 === moveRightIf0, then we can optimize this to one shorter selector.
 
-    if (moveRightIf1) {
-      // Concrete example: current head is at tape cell 0, moving to 1, destination head label is in tape cell 2 group.
-      const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
-        checked(), '+', '*', '+', checked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
-        .displayBlock();
-      sb.push(displayMoveIf1Mismatch);
-    } else {
-      // Concrete example: current head is at tape cell 1, moving to 0, destination head label is in tape cell 1 group.
-      const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
-        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        checked(), '+', '*', '+', checked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
-        .displayBlock();
-      sb.push(displayMoveIf1Mismatch);
-    }
-    if (moveRightIf0) {
-      const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
-        checked(), '+', '*', '+', unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
-        .displayBlock();
-      sb.push(displayMoveIf0Mismatch);
-    } else {
-      const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
-        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        checked(), '+', '*', '+', unchecked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
-        .displayBlock();
-      sb.push(displayMoveIf0Mismatch);
-    }
+    for (let source = 0; source < 2; source++) {
+      function displayMoveRightIf(tapeValue) {
+        // Concrete example: current head is at tape cell 0, moving to 1, destination head label is in tape cell 2 group.
+        if (source === 0) {
+          return select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
+            checked(), '+', '*', '+', tapeValue, '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+            unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+            attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
+            .displayBlock();
+        } else {
+          return select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
+            checked(), '+', '*', '+', tapeValue, '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+            unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+            attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
+            .displayBlock();
+        }
+      }
+      function displayMoveLeftIf(tapeValue) {
+        // Concrete example: current head is at tape cell 1, moving to 0, destination head label is in tape cell 1 group.
+        if (source === 0) {
+          return select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
+            unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+            checked(), '+', '*', '+', tapeValue, '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
+            .displayBlock();
+        } else {
+          return select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
+            unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+            checked(), '+', '*', '+', tapeValue, '+', attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
+            .displayBlock();
+        }
+      }
 
-    // Reverse direction:
-    if (moveRightIf1) {
-      const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
-        checked(), '+', '*', '+', checked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
-        .displayBlock();
-      sb.push(displayMoveIf1Mismatch);
-    } else {
-      const displayMoveIf1Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
-        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        checked(), '+', '*', '+', checked(), '+', attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
-        .displayBlock();
-      sb.push(displayMoveIf1Mismatch);
-    }
-    if (moveRightIf0) {
-      const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
-        checked(), '+', '*', '+', unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
-        .displayBlock();
-      sb.push(displayMoveIf0Mismatch);
-    } else {
-      const displayMoveIf0Mismatch = select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
-        unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
-        checked(), '+', '*', '+', unchecked(), '+', attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
-        .displayBlock();
-      sb.push(displayMoveIf0Mismatch);
+      if (moveRightIf1 === moveRightIf0) {
+        // Optimization: if moveRightIf1 === moveRightIf0, then we can shorten this to one selector that moves in the direction regardless of tape value.
+        if (moveRightIf1) {
+          sb.push(displayMoveRightIf('*'));
+        } else {
+          sb.push(displayMoveLeftIf('*'));
+        }
+      } else {
+        if (moveRightIf1) {
+          sb.push(displayMoveRightIf(checked()));
+        } else {
+          sb.push(displayMoveLeftIf(checked()));
+        }
+        if (moveRightIf0) {
+          sb.push(displayMoveRightIf(unchecked()));
+        } else {
+          sb.push(displayMoveLeftIf(unchecked()));
+        }
+      }
     }
   });
 }
