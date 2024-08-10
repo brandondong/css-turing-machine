@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import './TuringMachineForm.css';
 import TuringMachineStateTable, { DEFAULT_CONFIG } from './TuringMachineStateTable.jsx'
-import ShareableLink from './ShareableLink.jsx';
 import toHTML from './CompiledMachinePageBody.jsx';
 
 const MIN_TAPE_CELLS = 1;
@@ -9,23 +8,26 @@ const MIN_TAPE_CELLS = 1;
 export default function TuringMachineForm() {
   const [numTapeCells, setNumTapeCells] = useState("15");
   const [statesConfig, setStatesConfig] = useState(DEFAULT_CONFIG);
-  const [generatedDataUrl, setGeneratedDataUrl] = useState(null);
+  const [generatedUrl, setGeneratedUrl] = useState(null);
 
   function updateStatesConfig(statesConfig) {
     setStatesConfig(statesConfig);
-    setGeneratedDataUrl(null);
+    setGeneratedUrl(null);
   }
 
   function updateNumTapeCells(value) {
     setNumTapeCells(value);
-    setGeneratedDataUrl(null);
+    setGeneratedUrl(null);
   }
 
   function compileMachine() {
     const parsedNumTapeCells = parseInputNum(numTapeCells);
     const generatedHtml = toHTML(statesConfig, parsedNumTapeCells);
+
+    const blob = new Blob([generatedHtml], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
     setNumTapeCells(parsedNumTapeCells.toString());
-    setGeneratedDataUrl(toDataURL(generatedHtml));
+    setGeneratedUrl(blobUrl);
   }
 
   return (
@@ -44,15 +46,12 @@ export default function TuringMachineForm() {
           value={numTapeCells}
           onChange={e => updateNumTapeCells(e.target.value)} />
         </label>
+        <i className="tape-cell-label tape-cell-info"> (Doesn't change generated CSS)</i>
       </div>
       <div><button onClick={compileMachine}>Compile</button></div>
-      {generatedDataUrl && <div className="top-spacing"><ShareableLink url={generatedDataUrl} /></div>}
+      {generatedUrl && <div className="top-spacing"><a href={generatedUrl} target="_blank" rel="noopener noreferrer">Generated local link</a></div>}
     </>
   );
-}
-
-function toDataURL(html) {
-  return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 }
 
 function parseInputNum(value) {

@@ -12,6 +12,10 @@
   width: 3em;
 }
 
+.tape-cell-info {
+  color: #555;
+}
+
 .top-spacing {
   margin-top: 20px;
 }
