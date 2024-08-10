@@ -110,7 +110,7 @@ This can be done by strategically positioning inputs and labels in the DOM:
 <!-- And so on down the tape... -->
 ```
 
-By laying out the elements in this way, our logical OR selectors fulfill the task above without any further modification:
+By laying out the elements in this way, our logical OR construction fulfills the task above without any further modification:
 ```css
 input:checked + input + label {
   visibility: visible;
@@ -158,7 +158,7 @@ input#state-1:checked ~ input + input:checked + label {
 }
 ```
 
-With these tools, we now have everything needed to implement a Turing machine to CSS compiler.
+With these tools, we now have everything needed to implement a Turing-machine-to-CSS compiler.
 
 ### Computing a single iteration
 

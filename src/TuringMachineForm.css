@@ -1,5 +1,5 @@
-.addButton {
-  margin-bottom: 12px;
+.instructions {
+  margin-bottom: 40px;
 }
 
 .tape-cell-label {
@@ -9,7 +9,7 @@
 }
 
 .tape-cell-input {
-  width: 36px;
+  width: 3em;
 }
 
 .top-spacing {

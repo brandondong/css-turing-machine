@@ -1,33 +1,39 @@
 import React from 'react';
 import './TuringMachineStateTable.css';
 
+export const DEFAULT_CONFIG = [{ name: 'A', 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'R', next: 'A' } }];
+const DEFAULT_ADD = { 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'R', next: 'HALT' } };
+
 export default function TuringMachineStateTable({ config, setConfig }) {
   return (
-    <div className="table-overflow">
-      <table className="statetable">
-        <tbody>
-          <tr>
-            <th rowSpan={2}>Tape symbol</th>
-            {config.map((c, idx) => <th key={c.name}
-              colSpan={3}>
-              {`Current state ${c.name}`}{setConfig && config.length > 1 &&
-                <span className="close-icon" onClick={() => deleteState(config, idx, setConfig)}>×</span>}
-            </th>)}
-          </tr>
-          <tr className="instruction-labels">
-            {config.map((c) => <React.Fragment key={c.name}><td>Write symbol</td><td>Move head</td><td>Next state</td></React.Fragment>)}
-          </tr>
-          <tr>
-            <td>0</td>
-            {renderStateInfo(config, 0, setConfig)}
-          </tr>
-          <tr>
-            <td>1</td>
-            {renderStateInfo(config, 1, setConfig)}
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="table-overflow">
+        <table className="statetable">
+          <tbody>
+            <tr>
+              <th rowSpan={2}>Tape symbol</th>
+              {config.map((c, idx) => <th key={c.name}
+                colSpan={3}>
+                {`Current state ${c.name}`}{setConfig && config.length > 1 &&
+                  <span className="close-icon" onClick={() => deleteState(config, idx, setConfig)}>×</span>}
+              </th>)}
+            </tr>
+            <tr className="instruction-labels">
+              {config.map((c) => <React.Fragment key={c.name}><td>Write symbol</td><td>Move head</td><td>Next state</td></React.Fragment>)}
+            </tr>
+            <tr>
+              <td>0</td>
+              {renderStateInfo(config, 0, setConfig)}
+            </tr>
+            <tr>
+              <td>1</td>
+              {renderStateInfo(config, 1, setConfig)}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {setConfig && <button onClick={() => addNewState(config, setConfig)}>Add State</button>}
+    </>
   );
 }
 
@@ -80,6 +86,14 @@ function updateConfig(e, config, idx, tapeSymbol, prop, setConfig) {
   setConfig(copyConfigs);
 }
 
+function addNewState(config, setConfig) {
+  const copyConfigs = [...config];
+  const nextState = { ...DEFAULT_ADD };
+  nextState.name = nextName(config[config.length - 1].name);
+  copyConfigs.push(nextState);
+  setConfig(copyConfigs);
+}
+
 function deleteState(config, idx, setConfig) {
   const deletedName = config[idx].name;
   const copyConfigs = [...config];
@@ -101,4 +115,15 @@ function deleteReferences(state, deletedName) {
     }
   }
   return copied;
+}
+
+function nextName(name) {
+  for (let letter = name.length - 1; letter >= 0; letter--) {
+    const c = name.charCodeAt(letter);
+    const next = String.fromCharCode(c + 1);
+    if (next <= 'Z') {
+      return name.substring(0, letter) + next + 'A'.repeat(name.length - 1 - letter);
+    }
+  }
+  return 'A'.repeat(name.length + 1);
 }

@@ -8,13 +8,13 @@ import appLayoutCSS from './AppLayout.css?inline';
 import turingMachineStateTableCSS from './TuringMachineStateTable.css?inline';
 import compiledMachinePageBodyCSS from './CompiledMachinePageBody.css?inline';
 
-function CompiledMachinePageBody({ config, numTapeCells }) {
+function CompiledMachinePageBody({ statesConfig, numTapeCells }) {
   return <AppLayout
     main={
       <>
         <h3>Reference:</h3>
-        <TuringMachineStateTable config={config} />
-        <CompiledTuringMachine config={config} numTapeCells={numTapeCells} />
+        <TuringMachineStateTable config={statesConfig} />
+        <CompiledTuringMachine statesConfig={statesConfig} numTapeCells={numTapeCells} />
       </>
     }
     footer={<>This page implements the specified Turing machine without executing any Javascript or making any network requests. <a href={`${GITHUB_LINK}/blob/master/README.md#how-does-it-work`} target="_blank" rel="noopener noreferrer">How does it work?</a></>}
@@ -29,7 +29,7 @@ const TAPE_VALUE_PREFIX = 't';
 const BUFFER_SWITCH_ID = 'd';
 const STARTED_ID = 'g';
 
-function CompiledTuringMachine({ config, numTapeCells }) {
+function CompiledTuringMachine({ statesConfig, numTapeCells }) {
   // TURING MACHINE FORMAT:
   // "Started" radio input
   // "Buffer 0 is destination" checkbox input
@@ -57,7 +57,7 @@ function CompiledTuringMachine({ config, numTapeCells }) {
   elems.push(<input id={STARTED_ID} type="radio" key={counter++} />);
   elems.push(<input id={BUFFER_SWITCH_ID} type="checkbox" key={counter++} />);
 
-  const numStates = config.length + 1; // User configuration does not include halting state.
+  const numStates = statesConfig.length + 1; // User configuration does not include halting state.
   // State radio inputs:
   for (let stateIdx = 0; stateIdx < numStates; stateIdx++) {
     for (let buffer = 0; buffer < 2; buffer++) {
@@ -151,19 +151,19 @@ function getBufferPrefix(buffer) {
   return buffer === 0 ? BUFFER_PREFIX0 : BUFFER_PREFIX1;
 }
 
-export default function toHTML(config, numTapeCells) {
+export default function toHTML(statesConfig, numTapeCells) {
   return '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8"/>\n<style>\n' +
-    getCompiledMachinePageStyles(config) +
+    getCompiledMachinePageStyles(statesConfig) +
     '\n</style>\n<title>CSS Turing Machine</title>\n</head>\n<body>\n' +
-    getCompiledMachinePageBody(config, numTapeCells) +
+    getCompiledMachinePageBody(statesConfig, numTapeCells) +
     '\n</body>\n</html>';
 }
 
-function getCompiledMachinePageBody(config, numTapeCells) {
-  return ReactDOMServer.renderToStaticMarkup(<CompiledMachinePageBody config={config} numTapeCells={numTapeCells} />);
+function getCompiledMachinePageBody(statesConfig, numTapeCells) {
+  return ReactDOMServer.renderToStaticMarkup(<CompiledMachinePageBody statesConfig={statesConfig} numTapeCells={numTapeCells} />);
 }
 
-function getCompiledMachinePageStyles(config) {
+function getCompiledMachinePageStyles(statesConfig) {
   const staticStyles = indexCSS +
     appLayoutCSS +
     turingMachineStateTableCSS +
@@ -177,18 +177,18 @@ function getCompiledMachinePageStyles(config) {
 
   // Refer to the project's README for a detailed description of how this is supposed to work.
   const dynStyles = [];
-  addBufferSwitchLabelStyling(dynStyles, config);
-  addStateDisplayStyling(dynStyles, config);
-  addStateLabelStyling(dynStyles, config);
-  addTapeCellValueLabelStyling(dynStyles, config);
-  addHeadPositionLabelStyling(dynStyles, config);
+  addBufferSwitchLabelStyling(dynStyles, statesConfig);
+  addStateDisplayStyling(dynStyles, statesConfig);
+  addStateLabelStyling(dynStyles, statesConfig);
+  addTapeCellValueLabelStyling(dynStyles, statesConfig);
+  addHeadPositionLabelStyling(dynStyles, statesConfig);
 
   return staticStyles + '\n' + dynStyles.join('\n');
 }
 
-function addBufferSwitchLabelStyling(sb, config) {
+function addBufferSwitchLabelStyling(sb, statesConfig) {
   // Show the buffer switch label if we're not in the halting state.
-  const haltingState = config.length;
+  const haltingState = statesConfig.length;
   const b0HaltingStateInputId = getInputId(0, STATE_PREFIX, haltingState);
 
   const showBufferSwitchLabel = select(id(b0HaltingStateInputId).unchecked(), '+', unchecked(), '~', attr('for', BUFFER_SWITCH_ID))
@@ -196,8 +196,8 @@ function addBufferSwitchLabelStyling(sb, config) {
   sb.push(showBufferSwitchLabel);
 }
 
-function addStateDisplayStyling(sb, config) {
-  const stateNames = getOrderedStateNames(config);
+function addStateDisplayStyling(sb, statesConfig) {
+  const stateNames = getOrderedStateNames(statesConfig);
   stateNames.forEach((stateName, idx) => {
     const b0StateInputId = getInputId(0, STATE_PREFIX, idx);
     const b1StateInputId = getInputId(1, STATE_PREFIX, idx);
@@ -212,8 +212,8 @@ function addStateDisplayStyling(sb, config) {
   });
 }
 
-function addStateLabelStyling(sb, config) {
-  const stateNames = getOrderedStateNames(config);
+function addStateLabelStyling(sb, statesConfig) {
+  const stateNames = getOrderedStateNames(statesConfig);
   for (let source = 0; source < 2; source++) {
     const dest = 1 - source;
     const matchesSourceSelector = source === 0 ? id(BUFFER_SWITCH_ID).unchecked() : id(BUFFER_SWITCH_ID).checked();
@@ -228,7 +228,7 @@ function addStateLabelStyling(sb, config) {
 
       // Inner loop represents each possible value of the current state.
       // No rules necessary for case that current state is halting state (cannot transition to any other state).
-      config.forEach((currentState, currentStateIdx) => {
+      statesConfig.forEach((currentState, currentStateIdx) => {
         const currentStateInputId = getInputId(source, STATE_PREFIX, currentStateIdx);
         const currentStateCheckedSelector = id(currentStateInputId).checked();
         // currentStateCheckedSelector/destStateUncheckedSelector need to be ordered when creating the selector based on DOM layout.
@@ -255,35 +255,34 @@ function addStateLabelStyling(sb, config) {
   }
 }
 
-function addTapeCellValueLabelStyling(sb, config) {
+function addTapeCellValueLabelStyling(sb, statesConfig) {
   // Rules for non-head tape cell source/destination mismatch:
-  const displayMismatchUnchecked = select(id(BUFFER_SWITCH_ID).unchecked(), '~',
-    unchecked(), '+', '*', '+', checked(), '+', unchecked(), '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
-    .displayBlock();
-  const displayMismatchChecked = select(id(BUFFER_SWITCH_ID).unchecked(), '~',
-    unchecked(), '+', '*', '+', unchecked(), '+', checked(), '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
-    .displayBlock();
-  sb.push(displayMismatchUnchecked);
-  sb.push(displayMismatchChecked);
-  // And reverse direction:
-  const displayMismatchUncheckedReverse = select(id(BUFFER_SWITCH_ID).checked(), '~',
-    unchecked(), '+', unchecked(), '+', checked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
-    .displayBlock();
-  const displayMismatchCheckedReverse = select(id(BUFFER_SWITCH_ID).checked(), '~',
-    unchecked(), '+', checked(), '+', unchecked(), '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
-    .displayBlock();
-  sb.push(displayMismatchUncheckedReverse);
-  sb.push(displayMismatchCheckedReverse);
+  for (let source = 0; source < 2; source++) {
+    const displayNonHeadWriteIf = (tapeValue, destTapeValue) => {
+      if (source === 0) {
+        return select(id(BUFFER_SWITCH_ID).unchecked(), '~',
+          unchecked(), '+', '*', '+', tapeValue, '+', destTapeValue, '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
+          .displayBlock();
+      } else {
+        return select(id(BUFFER_SWITCH_ID).checked(), '~',
+          unchecked(), '+', destTapeValue, '+', tapeValue, '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
+          .displayBlock();
+      }
+    };
+
+    sb.push(displayNonHeadWriteIf(checked(), unchecked()));
+    sb.push(displayNonHeadWriteIf(unchecked(), checked()));
+  }
 
   // Rules for head tape cell where destination has mismatch with write instruction:
-  config.forEach((state, stateIdx) => {
+  statesConfig.forEach((state, stateIdx) => {
     const writeIf1 = state[1].write;
     const writeIf0 = state[0].write;
     const writeIf1DestMismatch = writeIf1 === '0' ? checked() : unchecked();
     const writeIf0DestMismatch = writeIf0 === '0' ? checked() : unchecked();
 
     for (let source = 0; source < 2; source++) {
-      function displayWriteIf(tapeValue, destTapeValue) {
+      const displayHeadWriteIf = (tapeValue, destTapeValue) => {
         if (source === 0) {
           return select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
             checked(), '+', '*', '+', tapeValue, '+', destTapeValue, '+', '*', '+', '*', '+', '*', '+', attrContains('for', getInputGroup(1, TAPE_VALUE_PREFIX)))
@@ -293,15 +292,15 @@ function addTapeCellValueLabelStyling(sb, config) {
             checked(), '+', destTapeValue, '+', tapeValue, '+', '*', '+', '*', '+', attrContains('for', getInputGroup(0, TAPE_VALUE_PREFIX)))
             .displayBlock();
         }
-      }
+      };
 
       if (writeIf1 === writeIf0) {
         // Optimization: if writeIf1 === writeIf0, then we can shorten this to one selector that writes to the mismatched destination regardless of input tape value.
-        const displayWriteIfMismatch = displayWriteIf('*', writeIf1DestMismatch);
+        const displayWriteIfMismatch = displayHeadWriteIf('*', writeIf1DestMismatch);
         sb.push(displayWriteIfMismatch);
       } else {
-        const displayWriteIf1Mismatch = displayWriteIf(checked(), writeIf1DestMismatch);
-        const displayWriteIf0Mismatch = displayWriteIf(unchecked(), writeIf0DestMismatch);
+        const displayWriteIf1Mismatch = displayHeadWriteIf(checked(), writeIf1DestMismatch);
+        const displayWriteIf0Mismatch = displayHeadWriteIf(unchecked(), writeIf0DestMismatch);
         sb.push(displayWriteIf1Mismatch);
         sb.push(displayWriteIf0Mismatch);
       }
@@ -309,14 +308,14 @@ function addTapeCellValueLabelStyling(sb, config) {
   });
 }
 
-function addHeadPositionLabelStyling(sb, config) {
+function addHeadPositionLabelStyling(sb, statesConfig) {
   // Rules for head position where destination has mismatch with move instruction:
-  config.forEach((state, stateIdx) => {
+  statesConfig.forEach((state, stateIdx) => {
     const moveRightIf1 = state[1].move === 'R';
     const moveRightIf0 = state[0].move === 'R';
 
     for (let source = 0; source < 2; source++) {
-      function displayMoveRightIf(tapeValue) {
+      const displayMoveRightIf = (tapeValue) => {
         // Concrete example: current head is at tape cell 0, moving to 1, destination head label is in tape cell 2 group.
         if (source === 0) {
           return select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
@@ -331,8 +330,8 @@ function addHeadPositionLabelStyling(sb, config) {
             attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
             .displayBlock();
         }
-      }
-      function displayMoveLeftIf(tapeValue) {
+      };
+      const displayMoveLeftIf = (tapeValue) => {
         // Concrete example: current head is at tape cell 1, moving to 0, destination head label is in tape cell 1 group.
         if (source === 0) {
           return select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
@@ -345,7 +344,7 @@ function addHeadPositionLabelStyling(sb, config) {
             checked(), '+', '*', '+', tapeValue, '+', attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
             .displayBlock();
         }
-      }
+      };
 
       if (moveRightIf1 === moveRightIf0) {
         // Optimization: if moveRightIf1 === moveRightIf0, then we can shorten this to one selector that moves in the direction regardless of tape value.
@@ -370,8 +369,8 @@ function addHeadPositionLabelStyling(sb, config) {
   });
 }
 
-function getOrderedStateNames(config) {
-  const stateNames = config.map(s => s.name);
+function getOrderedStateNames(statesConfig) {
+  const stateNames = statesConfig.map(s => s.name);
   stateNames.push('HALT');
   return stateNames;
 }
