@@ -8,6 +8,8 @@ import appLayoutCSS from './AppLayout.css?inline';
 import turingMachineStateTableCSS from './TuringMachineStateTable.css?inline';
 import compiledMachinePageBodyCSS from './CompiledMachinePageBody.css?inline';
 
+// React components in this file are only used through ReactDOMServer.
+/* eslint-disable react-refresh/only-export-components */
 function CompiledMachinePageBody({ statesConfig, numTapeCells }) {
   return <AppLayout
     main={
@@ -71,7 +73,7 @@ function CompiledTuringMachine({ statesConfig, numTapeCells }) {
   elems.push(<label htmlFor={BUFFER_SWITCH_ID} key={counter++} />);
 
   // Tape cells:
-  const halfwayVisibleTape = Math.min(Math.ceil(numTapeCells / 2) - 1, 12);
+  const halfwayTape = Math.ceil(numTapeCells / 2) - 1;
   // There is an extra dummy tape cell to fit the last tape head label.
   for (let tapeCellIdx = 0; tapeCellIdx < numTapeCells + 1; tapeCellIdx++) {
     const isDummyIdx = tapeCellIdx === numTapeCells;
@@ -80,8 +82,8 @@ function CompiledTuringMachine({ statesConfig, numTapeCells }) {
       if (!isDummyIdx) {
         const tapeHeadInputId = getInputId(buffer, HEAD_POS_PREFIX, tapeCellIdx);
         const tapeHeadInputGroup = getInputGroup(buffer, HEAD_POS_PREFIX);
-        // Initialize the head position halfway along the visible tape.
-        elems.push(<input id={tapeHeadInputId} type="radio" name={tapeHeadInputGroup} defaultChecked={tapeCellIdx === halfwayVisibleTape} key={counter++} />);
+        // Initialize the head position halfway along the tape.
+        elems.push(<input id={tapeHeadInputId} type="radio" name={tapeHeadInputGroup} defaultChecked={tapeCellIdx === halfwayTape} key={counter++} />);
       } else {
         // Maintain the relative positioning of elements for the last tape head label.
         elems.push(<i key={counter++} />);
@@ -154,9 +156,9 @@ function getBufferPrefix(buffer) {
 }
 
 export default function toHTML(statesConfig, numTapeCells) {
-  return '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8"/>\n<style>\n' +
+  return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="UTF-8"/>\n<meta name="viewport" content="width=device-width, initial-scale=1.0"/>\n<title>CSS Turing Machine</title>\n<style>\n' +
     getCompiledMachinePageStyles(statesConfig) +
-    '\n</style>\n<meta name="viewport" content="width=device-width, initial-scale=1.0"/>\n<title>CSS Turing Machine</title>\n</head>\n<body>\n' +
+    '\n</style>\n</head>\n<body>\n' +
     getCompiledMachinePageBody(statesConfig, numTapeCells) +
     '\n</body>\n</html>';
 }
@@ -185,7 +187,10 @@ function getCompiledMachinePageStyles(statesConfig) {
   addTapeCellValueLabelStyling(dynStyles, statesConfig);
   addHeadPositionLabelStyling(dynStyles, statesConfig);
 
-  return staticStyles + '\n' + dynStyles.join('\n');
+  return '/* Common CSS: */\n' +
+    staticStyles +
+    '\n\n/* Generated CSS for the specified state table: */\n' +
+    dynStyles.join('\n');
 }
 
 function addBufferSwitchLabelStyling(sb, statesConfig) {
@@ -205,13 +210,10 @@ function addStateDisplayStyling(sb, statesConfig) {
     const b0StateInputId = getInputId(0, STATE_PREFIX, idx);
     const b1StateInputId = getInputId(1, STATE_PREFIX, idx);
 
-    const displayStateNameTop = select(id(b0StateInputId).checked(), '~', 'p', '+', 'i::after')
-      .content(stateNameString);
-    const displayStateNameBottom = select(id(b1StateInputId).checked(), '~', 'p', '+', 'i', '+', 'i::after')
-      .content(stateNameString);
+    const selectStateNameTop = select(id(b0StateInputId).checked(), '~', 'p', '+', 'i::after');
+    const selectStateNameBottom = select(id(b1StateInputId).checked(), '~', 'p', '+', 'i', '+', 'i::after');
 
-    sb.push(displayStateNameTop);
-    sb.push(displayStateNameBottom);
+    sb.push(select(selectStateNameTop, ',', selectStateNameBottom).content(stateNameString));
   });
 }
 

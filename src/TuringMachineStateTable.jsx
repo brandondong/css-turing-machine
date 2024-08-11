@@ -1,7 +1,6 @@
 import React from 'react';
 import './TuringMachineStateTable.css';
 
-export const DEFAULT_CONFIG = [{ name: 'A', 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'R', next: 'A' } }];
 const DEFAULT_ADD = { 0: { write: '1', move: 'L', next: 'HALT' }, 1: { write: '0', move: 'R', next: 'HALT' } };
 
 export default function TuringMachineStateTable({ config, setConfig }) {
