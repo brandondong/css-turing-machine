@@ -318,15 +318,16 @@ function addHeadPositionLabelStyling(sb, statesConfig) {
     for (let source = 0; source < 2; source++) {
       const displayMoveRightIf = (tapeValue) => {
         // Concrete example: current head is at tape cell 0, moving to 1, destination head label is in tape cell 2 group.
+        // Need to perform a "bounds check" in case destination head label is in tape cell 1 group to make sure we're not peering up into state inputs.
         if (source === 0) {
           return select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
-            checked(), '+', '*', '+', tapeValue, '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+            attrContains('id', HEAD_POS_PREFIX).checked(), '+', '*', '+', tapeValue, '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
             unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
             attrContains('for', getInputGroup(1, HEAD_POS_PREFIX)))
             .displayBlock();
         } else {
           return select(id(BUFFER_SWITCH_ID).checked(), '~', id(getInputId(1, STATE_PREFIX, stateIdx)).checked(), '~',
-            checked(), '+', '*', '+', tapeValue, '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
+            attrContains('id', HEAD_POS_PREFIX).checked(), '+', '*', '+', tapeValue, '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
             unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
             attrContains('for', getInputGroup(0, HEAD_POS_PREFIX)))
             .displayBlock();
@@ -334,6 +335,7 @@ function addHeadPositionLabelStyling(sb, statesConfig) {
       };
       const displayMoveLeftIf = (tapeValue) => {
         // Concrete example: current head is at tape cell 1, moving to 0, destination head label is in tape cell 1 group.
+        // Implicit "bounds check" is performed for last destination head label because dummy elements group cannot have checked head position.
         if (source === 0) {
           return select(id(BUFFER_SWITCH_ID).unchecked(), '~', id(getInputId(0, STATE_PREFIX, stateIdx)).checked(), '~',
             unchecked(), '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+', '*', '+',
