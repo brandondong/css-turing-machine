@@ -154,7 +154,7 @@ function getBufferPrefix(buffer) {
 export default function toHTML(statesConfig, numTapeCells) {
   return '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8"/>\n<style>\n' +
     getCompiledMachinePageStyles(statesConfig) +
-    '\n</style>\n<title>CSS Turing Machine</title>\n</head>\n<body>\n' +
+    '\n</style>\n<meta name="viewport" content="width=device-width, initial-scale=1.0"/>\n<title>CSS Turing Machine</title>\n</head>\n<body>\n' +
     getCompiledMachinePageBody(statesConfig, numTapeCells) +
     '\n</body>\n</html>';
 }
@@ -199,13 +199,14 @@ function addBufferSwitchLabelStyling(sb, statesConfig) {
 function addStateDisplayStyling(sb, statesConfig) {
   const stateNames = getOrderedStateNames(statesConfig);
   stateNames.forEach((stateName, idx) => {
+    const stateNameString = `State: ${stateName}`;
     const b0StateInputId = getInputId(0, STATE_PREFIX, idx);
     const b1StateInputId = getInputId(1, STATE_PREFIX, idx);
 
     const displayStateNameTop = select(id(b0StateInputId).checked(), '~', 'p', '+', 'i::after')
-      .content(stateName);
-    const displayStateNameBottom = select(id(STARTED_ID).checked(), '~', id(b1StateInputId).checked(), '~', 'p', '+', 'i', '+', 'i::after')
-      .content(stateName);
+      .content(stateNameString);
+    const displayStateNameBottom = select(id(b1StateInputId).checked(), '~', 'p', '+', 'i', '+', 'i::after')
+      .content(stateNameString);
 
     sb.push(displayStateNameTop);
     sb.push(displayStateNameBottom);

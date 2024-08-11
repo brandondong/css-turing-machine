@@ -44,13 +44,13 @@ p+p {
   grid-row: 5;
 }
 
-[id*="TAPE_VALUE_PREFIX"]::before,
-p::before {
+[id*="TAPE_VALUE_PREFIX"]::after,
+p::after {
   content: "0";
 }
 
-[id*="TAPE_VALUE_PREFIX"]:checked::before,
-:checked+*+*+*+*+*+p::before {
+[id*="TAPE_VALUE_PREFIX"]:checked::after,
+:checked+*+*+*+*+*+p::after {
   content: "1";
 }
 
@@ -77,7 +77,7 @@ p::before {
   visibility: hidden;
 }
 
-[id*="HEAD_POS_PREFIX"]::before {
+[id*="HEAD_POS_PREFIX"]::after {
   content: "▲";
 }
 
@@ -101,11 +101,11 @@ label:hover {
   background-color: #16a34a;
 }
 
-label::before {
+label::after {
   content: "Execute Step";
 }
 
-[for="STARTED_ID"]::before {
+[for="STARTED_ID"]::after {
   content: "Start";
 }
 
@@ -125,15 +125,16 @@ p+i+i {
   display: block;
   font-style: normal;
   grid-row: 1;
-  grid-column: 1 / 15;
-}
-
-i::before {
-  content: "State: ";
+  grid-column: 1 / 16;
 }
 
 p+i+i {
   grid-row: 4;
+}
+
+i::after {
+  position: sticky;
+  left: 0px;
 }
 
 /* Show the start label initially. */
@@ -153,8 +154,8 @@ p+i+i {
 }
 
 /* Use the second state label to show a help message before starting. */
-#STARTED_ID:not(:checked)~p+i+i::before {
-  content: "Set the initial tape input by clicking on the squares above.";
+#STARTED_ID:not(:checked)~p+i+i::after {
+  content: "Set the initial tape input by clicking on the squares above." !important;
 }
 
 /* Fade the top elements after starting and the bottom is the destination. */
