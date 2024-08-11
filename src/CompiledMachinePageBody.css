@@ -11,11 +11,15 @@
   padding: 5px;
 }
 
+.min-height-grid {
+  min-height: 292px;
+}
+
 .machine-grid {
   display: inline-grid;
   column-gap: 2px;
   row-gap: 10px;
-  /* Six rows: state, cells, tape head X2. */
+  /* Four rows: cells, tape head X2. */
 }
 
 input,
@@ -36,12 +40,12 @@ p {
   font-size: 28px;
   line-height: normal;
   padding: 5px 12px;
-  margin: 0px;
-  grid-row: 2;
+  margin: 39px 0px 0px 0px;
+  grid-row: 1;
 }
 
 p+p {
-  grid-row: 5;
+  grid-row: 3;
 }
 
 [id*="TAPE_VALUE_PREFIX"]::after,
@@ -66,11 +70,11 @@ p::after {
   font-size: 28px;
   margin: 0px 0px 20px 0px;
   text-align: center;
-  grid-row: 3;
+  grid-row: 2;
 }
 
 [id*="BUFFER_PREFIX1HEAD_POS_PREFIX"] {
-  grid-row: 6;
+  grid-row: 4;
 }
 
 [id*="HEAD_POS_PREFIX"]:not(:checked) {
@@ -124,17 +128,12 @@ p+i,
 p+i+i {
   display: block;
   font-style: normal;
-  grid-row: 1;
-  grid-column: 1 / 16;
+  position: absolute;
+  left: 0px;
 }
 
 p+i+i {
-  grid-row: 4;
-}
-
-i::after {
-  position: sticky;
-  left: 0px;
+  transform: translate(0px, 151px);
 }
 
 /* Show the start label initially. */
@@ -171,6 +170,10 @@ i::after {
 #BUFFER_SWITCH_ID:checked~p+i+i {
   opacity: 0.5;
   transform: translate(0px, -151px);
+}
+
+#BUFFER_SWITCH_ID:checked~p+i+i {
+  transform: translate(0px, 0px);
 }
 
 #BUFFER_SWITCH_ID:checked~:not(p)+p,

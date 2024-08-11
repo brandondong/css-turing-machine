@@ -132,8 +132,10 @@ function CompiledTuringMachine({ statesConfig, numTapeCells }) {
 
   return <div className="machine">
     <div className="scroll-x">
-      <div className="machine-grid">
-        {elems}
+      <div className="min-height-grid">
+        <div className="machine-grid">
+          {elems}
+        </div>
       </div>
     </div>
   </div>;
