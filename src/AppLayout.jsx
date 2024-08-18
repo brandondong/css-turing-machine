@@ -6,10 +6,10 @@ export default function AppLayout({ main, footer }) {
       <main className="app-content">
         {main}
       </main>
-      <footer className="footer">
+      {footer && <footer>
         <hr />
         {footer}
-      </footer>
+      </footer>}
     </div>
   );
 }

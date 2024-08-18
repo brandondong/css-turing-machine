@@ -14,12 +14,11 @@ function CompiledMachinePageBody({ statesConfig, numTapeCells }) {
   return <AppLayout
     main={
       <>
-        <h3>Reference:</h3>
+        <p>This page implements the specified Turing machine without executing any Javascript or making any network requests. <a href={`${GITHUB_LINK}/blob/master/README.md#how-does-it-work`} target="_blank" rel="noopener noreferrer">How does it work?</a></p>
         <TuringMachineStateTable config={statesConfig} />
         <CompiledTuringMachine statesConfig={statesConfig} numTapeCells={numTapeCells} />
       </>
     }
-    footer={<>This page implements the specified Turing machine without executing any Javascript or making any network requests. <a href={`${GITHUB_LINK}/blob/master/README.md#how-does-it-work`} target="_blank" rel="noopener noreferrer">How does it work?</a></>}
   />
 }
 
@@ -117,7 +116,7 @@ function CompiledTuringMachine({ statesConfig, numTapeCells }) {
       }
       // Tape cell value display:
       for (let buffer = 0; buffer < 2; buffer++) {
-        elems.push(<p key={counter++} />);
+        elems.push(<s key={counter++} />);
       }
     }
   }
@@ -210,8 +209,8 @@ function addStateDisplayStyling(sb, statesConfig) {
     const b0StateInputId = getInputId(0, STATE_PREFIX, idx);
     const b1StateInputId = getInputId(1, STATE_PREFIX, idx);
 
-    const selectStateNameTop = select(id(b0StateInputId).checked(), '~', 'p', '+', 'i::after');
-    const selectStateNameBottom = select(id(b1StateInputId).checked(), '~', 'p', '+', 'i', '+', 'i::after');
+    const selectStateNameTop = select(id(b0StateInputId).checked(), '~', 's', '+', 'i::after');
+    const selectStateNameBottom = select(id(b1StateInputId).checked(), '~', 's', '+', 'i', '+', 'i::after');
 
     sb.push(select(selectStateNameTop, ',', selectStateNameBottom).content(stateNameString));
   });

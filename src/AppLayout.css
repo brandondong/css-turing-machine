@@ -2,15 +2,13 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  box-sizing: border-box;
+  padding: 18px 0px 40px 0px;
+  row-gap: 40px;
   max-width: 1280px;
   margin: 0px auto;
 }
 
 .app-content {
   flex: 1;
-  padding: 18px 0px 40px 0px;
-}
-
-.footer {
-  padding-bottom: 40px;
 }

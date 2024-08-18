@@ -32,29 +32,30 @@ input {
 }
 
 [id*="TAPE_VALUE_PREFIX"],
-p {
+s {
   appearance: none;
   color: white;
   background-color: rgb(66, 139, 202);
   font-family: "Courier New";
   font-size: 28px;
   line-height: normal;
+  text-decoration: none;
   padding: 5px 12px;
   margin: 39px 0px 0px 0px;
   grid-row: 1;
 }
 
-p+p {
+s+s {
   grid-row: 3;
 }
 
 [id*="TAPE_VALUE_PREFIX"]::after,
-p::after {
+s::after {
   content: "0";
 }
 
 [id*="TAPE_VALUE_PREFIX"]:checked::after,
-:checked+*+*+*+*+*+p::after {
+:checked+*+*+*+*+*+s::after {
   content: "1";
 }
 
@@ -124,15 +125,17 @@ label::after {
 }
 
 /* Reuse some of the dummy elements to display the state. */
-p+i,
-p+i+i {
+s+i,
+s+i+i {
   display: block;
   font-style: normal;
   position: absolute;
   left: 0px;
+  /* Don't block horizontal scrolling. */
+  z-index: -1;
 }
 
-p+i+i {
+s+i+i {
   transform: translate(0px, 151px);
 }
 
@@ -147,38 +150,38 @@ p+i+i {
 }
 
 /* Hide display cells/bottom tape head before starting. */
-#STARTED_ID:not(:checked)~p,
-#STARTED_ID:not(:checked)~[id*="BUFFER_PREFIX1HEAD_POS_PREFIX"] {
+#STARTED_ID:not(:checked)~s,
+#STARTED_ID:not(:checked)~[id*="BUFFER_PREFIX1"] {
   display: none;
 }
 
 /* Use the second state label to show a help message before starting. */
-#STARTED_ID:not(:checked)~p+i+i::after {
+#STARTED_ID:not(:checked)~s+i+i::after {
   content: "Set the initial tape input by clicking on the squares above." !important;
 }
 
 /* Fade the top elements after starting and the bottom is the destination. */
-#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~:not(p)+p,
-#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~[id*="BUFFER_PREFIX0HEAD_POS_PREFIX"],
-#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~p+i {
+#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~:not(s)+s,
+#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~[id*="BUFFER_PREFIX0"],
+#STARTED_ID:checked~#BUFFER_SWITCH_ID:not(:checked)~s+i {
   opacity: 0.5;
 }
 
 /* Fade the bottom elements when the top is the destination and swap positions. */
-#BUFFER_SWITCH_ID:checked~p+p,
-#BUFFER_SWITCH_ID:checked~[id*="BUFFER_PREFIX1HEAD_POS_PREFIX"],
-#BUFFER_SWITCH_ID:checked~p+i+i {
+#BUFFER_SWITCH_ID:checked~s+s,
+#BUFFER_SWITCH_ID:checked~[id*="BUFFER_PREFIX1"],
+#BUFFER_SWITCH_ID:checked~s+i+i {
   opacity: 0.5;
   transform: translate(0px, -151px);
 }
 
-#BUFFER_SWITCH_ID:checked~p+i+i {
+#BUFFER_SWITCH_ID:checked~s+i+i {
   transform: translate(0px, 0px);
 }
 
-#BUFFER_SWITCH_ID:checked~:not(p)+p,
-#BUFFER_SWITCH_ID:checked~[id*="BUFFER_PREFIX0HEAD_POS_PREFIX"],
-#BUFFER_SWITCH_ID:checked~p+i {
+#BUFFER_SWITCH_ID:checked~:not(s)+s,
+#BUFFER_SWITCH_ID:checked~[id*="BUFFER_PREFIX0"],
+#BUFFER_SWITCH_ID:checked~s+i {
   transform: translate(0px, 151px);
 }
 
